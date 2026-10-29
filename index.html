@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI Long Video Director v4.0 — Veo 3.1 JSON Spec & Character Sheet Studio</title>
+  <title>AI Long Video Director v4.1 — Editable Story & Veo 3.1 Spec</title>
   <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
   <style>
@@ -16,10 +16,10 @@
       --surface-2: hsla(0, 0%, 100%, 0.065);
       --surface-3: hsla(0, 0%, 100%, 0.1);
       --border: hsla(0, 0%, 100%, 0.08);
-      --border-strong: hsla(0, 0%, 100%, 0.16);
+      --border-strong: hsla(0, 0%, 100%, 0.18);
       --text: #f4f4f5;
       --text-muted: #a1a1aa;
-      --text-dim: #52525b;
+      --text-dim: #71717a;
       --accent: #3b82f6;
       --accent-2: #60a5fa;
       --accent-glow: rgba(59, 130, 246, 0.35);
@@ -28,6 +28,8 @@
       --purple-surface: rgba(168, 85, 247, 0.12);
       --amber: #f59e0b;
       --amber-surface: rgba(245, 158, 11, 0.12);
+      --emerald: #10b981;
+      --emerald-surface: rgba(16, 185, 129, 0.12);
       --success: #22c55e;
       --danger: #ef4444;
     }
@@ -74,29 +76,25 @@
       cursor: pointer;
     }
 
-    .app-container { position: relative; z-index: 10; max-width: 1640px; margin: 0 auto; padding: 0 1rem 3rem; }
+    .app-container { position: relative; z-index: 10; max-width: 1660px; margin: 0 auto; padding: 0 1rem 3rem; }
     @media (min-width: 768px) { .app-container { padding: 0 1.5rem 3rem; } }
     @media (min-width: 1024px) { .app-container { padding: 0 2rem 3rem; } }
 
     .sticky-header {
       position: sticky; top: 0; z-index: 30;
       backdrop-filter: blur(24px);
-      background: rgba(9, 9, 11, 0.82);
+      background: rgba(9, 9, 11, 0.85);
       border-bottom: 1px solid var(--border);
-      margin: 0 -1rem; padding: 1.1rem 1rem;
+      margin: 0 -1rem; padding: 1rem 1rem;
     }
-    @media (min-width: 768px) { .sticky-header { margin: 0 -1.5rem; padding: 1.15rem 1.5rem; } }
-    @media (min-width: 1024px) { .sticky-header { margin: 0 -2rem; padding: 1.15rem 2rem; } }
+    @media (min-width: 768px) { .sticky-header { margin: 0 -1.5rem; padding: 1.1rem 1.5rem; } }
+    @media (min-width: 1024px) { .sticky-header { margin: 0 -2rem; padding: 1.1rem 2rem; } }
 
     .main-grid {
       display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-top: 1.5rem; align-items: start;
     }
     @media (min-width: 1024px) {
       .main-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1.5rem; }
-      .col-left { grid-column: span 5 / span 5; }
-      .col-right { grid-column: span 7 / span 7; }
-    }
-    @media (min-width: 1280px) {
       .col-left { grid-column: span 5 / span 5; }
       .col-right { grid-column: span 7 / span 7; }
     }
@@ -110,28 +108,28 @@
       background: rgba(59, 130, 246, 0.045); backdrop-filter: blur(20px); overflow: hidden;
     }
     .card-header {
-      padding: 0.95rem 1.25rem; border-bottom: 1px solid var(--border);
+      padding: 0.95rem 1.2rem; border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;
     }
     .card-body { padding: 1.15rem; display: flex; flex-direction: column; gap: 0.95rem; }
 
     .input-field, .textarea-field, .select-field {
       width: 100%; border-radius: 10px; border: 1px solid var(--border);
-      background: #101013; padding: 0.52rem 0.75rem; font-size: 12.5px; color: #eaeaea;
+      background: #101013; padding: 0.55rem 0.75rem; font-size: 12.5px; color: #f4f4f5;
       transition: all 0.15s ease; outline: none;
     }
     .textarea-field { resize: vertical; line-height: 1.55; }
     .input-field:focus, .textarea-field:focus, .select-field:focus {
-      border-color: var(--accent); background: #151519;
+      border-color: var(--accent); background: #16161b; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
     }
 
     .label-title {
-      font-size: 10px; font-weight: 600; letter-spacing: 0.07em;
-      color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.25rem; display: block;
+      font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em;
+      color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.28rem; display: block;
     }
 
     .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.38rem;
       border-radius: 999px; padding: 0.42rem 0.85rem; font-size: 11.5px; font-weight: 600;
       cursor: pointer; transition: all 0.15s ease; border: 1px solid transparent;
     }
@@ -139,6 +137,10 @@
       background: var(--accent); color: #fff; box-shadow: 0 0 18px var(--accent-glow);
     }
     .btn-primary:hover { background: #2563eb; }
+    .btn-emerald {
+      background: var(--emerald-surface); color: #34d399; border-color: rgba(16, 185, 129, 0.35);
+    }
+    .btn-emerald:hover { background: var(--emerald); color: #fff; }
     .btn-purple {
       background: var(--purple-surface); color: #d8b4fe; border-color: rgba(168, 85, 247, 0.35);
     }
@@ -147,10 +149,16 @@
       background: rgba(255, 255, 255, 0.06); color: #fff; border-color: var(--border);
     }
     .btn-secondary:hover { background: rgba(255, 255, 255, 0.12); border-color: var(--border-strong); }
-    .btn-danger-ghost {
-      background: transparent; color: var(--text-dim); padding: 0.2rem 0.5rem; font-size: 11px;
+    .btn-icon-sm {
+      padding: 0.22rem 0.5rem; font-size: 11px; border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid var(--border);
+      cursor: pointer;
     }
-    .btn-danger-ghost:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+    .btn-icon-sm:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+    .btn-danger-ghost {
+      background: transparent; color: var(--text-dim); padding: 0.22rem 0.5rem; font-size: 11px; border-radius: 8px;
+    }
+    .btn-danger-ghost:hover { color: var(--danger); background: rgba(239, 68, 68, 0.12); }
 
     .badge {
       display: inline-flex; align-items: center; gap: 0.35rem;
@@ -181,16 +189,19 @@
     }
 
     .scene-item {
-      border-radius: 14px; border: 1px solid var(--border); background: #0e0e11;
+      border-radius: 14px; border: 1px solid var(--border); background: #0e0e12;
       transition: all 0.15s ease; overflow: hidden;
     }
     .scene-item.active {
-      border-color: rgba(59, 130, 246, 0.45); background: rgba(59, 130, 246, 0.05);
+      border-color: rgba(59, 130, 246, 0.45); background: rgba(59, 130, 246, 0.04);
     }
     .scene-header {
-      width: 100%; padding: 0.7rem 0.95rem; display: flex; align-items: center;
+      width: 100%; padding: 0.75rem 1rem; display: flex; align-items: center;
       justify-content: space-between; gap: 0.75rem; background: transparent;
       color: inherit; text-align: left; cursor: pointer;
+    }
+    .scene-header:hover {
+      background: rgba(255, 255, 255, 0.02);
     }
 
     .char-sheet-preview {
@@ -213,6 +224,16 @@
       gap: 0.65rem;
     }
 
+    .story-editor-box {
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.04);
+      border: 1px solid rgba(16, 185, 129, 0.22);
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
     .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
     .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
     @media (max-width: 640px) {
@@ -230,7 +251,7 @@
     const { useState, useEffect, useMemo, useRef } = React;
     const h = React.createElement;
 
-    const STORAGE_KEY = "AI_LONG_VIDEO_DIRECTOR_V4_VEO31_STATE";
+    const STORAGE_KEY = "AI_LONG_VIDEO_DIRECTOR_V4_1_STATE";
 
     // ============================================================================
     // 1. EXPANDED MASTER GENRE / STYLE CATALOG WITH PRESET DNA
@@ -293,7 +314,7 @@
       "Lai Rod Nam & Traditional Thai Fine Art (วิจิตรศิลป์ลายรดน้ำและงานช่างสิบหมู่)": {
         style: "Living Thai Lai Rod Nam gold-on-black lacquerware aesthetic blended with photorealistic 3D carved teakwood and stucco relief textures, macro detail",
         atmosphere: "Sacred temple hall illuminated by flickering oil lamps, golden leaf reflections on black lacquer panels, mystical serene ambiance",
-        colorPalette: "Pure 24K gold leaf highlights against deep matte charcoal-black and agedcrimson lacquer tones"
+        colorPalette: "Pure 24K gold leaf highlights against deep matte charcoal-black and aged crimson lacquer tones"
       },
       "High Renaissance Chiaroscuro Cinema (แสงเงาเรเนซองส์ คอนทราสต์จัด ลุ่มลึก)": {
         style: "High Renaissance Caravaggio chiaroscuro cinematography, extreme directional key light, rich oil-painting texture depth with photorealistic skin pores, Cooke Anamorphic lens",
@@ -308,7 +329,7 @@
       "Atmospheric Mountain Road Noir (ระทึกขวัญเส้นทางภูเขาหมอกมืด)": {
         style: "Atmospheric nocturnal road thriller, realistic headlight beams cutting through dense mountain fog, wet asphalt specular reflections, Sony Venice 2 low-light ISO",
         atmosphere: "Winding steep mountain road in Chiang Mai (Samoeng route) at midnight, thick swirling mist, towering pine and bamboo silhouettes",
-        colorPalette: " Sodium-vapor amber streetlamps vs cold tungsten headlights and deep midnight blue fog"
+        colorPalette: "Sodium-vapor amber streetlamps vs cold tungsten headlights and deep midnight blue fog"
       }
     };
 
@@ -370,22 +391,22 @@
     const SCENE_BEATS = [
       "HOOK - ตะขอเกี่ยวจิต",
       "INTRO - เปิดโลกเรื่องเล่า",
-      "KARMA ORIGIN - จุดกำเนิดกรรม",
-      "CHARACTER 01 REVEAL - เผยโฉมตัวละคร",
-      "INCITING INCIDENT - เหตุกระตุ้น",
-      "RISING DREAD 01 - ความกลัวค่อยๆ ก่อ",
-      "CHARACTER CONFLICT - ความขัดแย้ง",
+      "KARMA ORIGIN - จุดกำเนิดเรื่องราว/ปมหลัง",
+      "CHARACTER 01 REVEAL - เผยโฉมตัวละครหลัก",
+      "INCITING INCIDENT - เหตุการณ์จุดชนวน",
+      "RISING TENSION 01 - ความเข้มข้นเริ่มก่อตัว",
+      "CHARACTER CONFLICT - ความขัดแย้งและทางเลือก",
       "REVELATION 01 - เผยความจริงชั้นแรก",
-      "MIDPOINT - จุดกึ่งกลางบิดผัน",
-      "RISING DREAD 02 - ความกลัวทวีคูณ",
-      "KARMA PAYBACK 01 - กรรมเริ่มตามสนอง",
-      "FALSE HOPE - ความหวังจอมปลอม",
-      "CHARACTER BREAKDOWN - ตัวละครแตกสลาย",
-      "KARMA PAYBACK 02 - จุดพีคกรรมสนอง",
-      "TWIST - หักมุม",
-      "CLIMAX - จุดไคลแมกซ์",
-      "AFTERMATH - ผลพวง",
-      "MORAL / OUTRO - ข้อคิดปิดเรื่อง"
+      "MIDPOINT - จุดกึ่งกลางพลิกผัน",
+      "RISING TENSION 02 - สถานการณ์ทวีความตึงเครียด",
+      "CONSEQUENCE 01 - ผลลัพธ์เริ่มปรากฏ",
+      "FALSE HOPE - ความหวังก่อนพายุใหญ่",
+      "CHARACTER BREAKDOWN - จุดกดดันสูงสุดของตัวละคร",
+      "CONSEQUENCE 02 - การเผชิญหน้าเต็มรูปแบบ",
+      "TWIST - หักมุมเผยความจริงทั้งหมด",
+      "CLIMAX - จุดไคลแมกซ์ตัดสินชะตา",
+      "AFTERMATH - ผลพวงหลังเหตุการณ์สงบ",
+      "MORAL / OUTRO - บทสรุปและข้อคิดปิดเรื่อง"
     ];
 
     const DEFAULT_SCENE_PROMPTS = [
@@ -417,6 +438,14 @@
       const m = Math.floor(seconds / 60).toString().padStart(2, "0");
       const s = (seconds % 60).toString().padStart(2, "0");
       return `${m}:${s}`;
+    }
+
+    function recalculateSceneTimings(scenes, sceneDuration) {
+      return scenes.map((sc, idx) => ({
+        ...sc,
+        start: idx * sceneDuration,
+        end: (idx + 1) * sceneDuration
+      }));
     }
 
     function createInitialState() {
@@ -464,7 +493,7 @@
         sceneDuration: 8,
         aspectRatio: "9:16",
         masterStyle: "Documentary Horror (สารคดีสยองขวัญไทย)",
-        outputMode: "VEO_JSON", // "VEO_JSON" | "TEXT" | "CHAR_SHEETS"
+        outputMode: "VEO_JSON",
         characters: defaultChars,
         visualLock: {
           style: "Documentary Horror, photorealistic, ultra-detailed skin texture, natural practical lighting, 8K, shot on ARRI Alexa 65, subtle 35mm film grain",
@@ -492,7 +521,7 @@
           const saved = localStorage.getItem(STORAGE_KEY);
           if (saved) {
             const parsed = JSON.parse(saved);
-            if (parsed && parsed.scenes && parsed.characters) return parsed;
+            if (parsed && Array.isArray(parsed.scenes) && Array.isArray(parsed.characters)) return parsed;
           }
         } catch (err) {
           console.warn("Failed to load state from localStorage:", err);
@@ -500,7 +529,9 @@
         return createInitialState();
       });
 
-      const [openSceneId, setOpenSceneId] = useState("scene-0");
+      // Multi-expand support + Quick Story View mode so users can always edit story directly
+      const [expandedSceneIds, setExpandedSceneIds] = useState(() => state.scenes.map((s) => s.id));
+      const [quickStoryMode, setQuickStoryMode] = useState(false);
       const [copiedGlobal, setCopiedGlobal] = useState(false);
       const [copiedSceneId, setCopiedSceneId] = useState(null);
       const [copiedCharId, setCopiedCharId] = useState(null);
@@ -514,16 +545,22 @@
         }
       }, [state]);
 
-      useEffect(() => {
-        const targetCount = Math.max(4, Math.min(40, Math.round(state.totalDuration / state.sceneDuration)));
+      const updateField = (key, value) => setState((prev) => ({ ...prev, [key]: value }));
+      const updateVisual = (key, value) => setState((prev) => ({ ...prev, visualLock: { ...prev.visualLock, [key]: value } }));
+      const updateAudio = (key, value) => setState((prev) => ({ ...prev, audioLock: { ...prev.audioLock, [key]: value } }));
+
+      // Handle Total Duration Slider change explicitly
+      const handleDurationSliderChange = (newTotalSec) => {
+        const targetCount = Math.max(1, Math.min(40, Math.round(newTotalSec / state.sceneDuration)));
         setState((prev) => {
           let nextScenes = [...prev.scenes];
           if (nextScenes.length < targetCount) {
             for (let i = nextScenes.length; i < targetCount; i++) {
               const def = DEFAULT_SCENE_PROMPTS[i] || {};
+              const newId = `scene-${i}-${Date.now()}`;
               nextScenes.push({
-                id: `scene-${i}-${Date.now()}`,
-                title: i < SCENE_BEATS.length ? SCENE_BEATS[i] : `SCENE ${String(i + 1).padStart(2, "0")} - ดำเนินเรื่องต่อเนื่อง`,
+                id: newId,
+                title: i < SCENE_BEATS.length ? SCENE_BEATS[i] : `SHOT ${String(i + 1).padStart(2, "0")} - ดำเนินเรื่องต่อเนื่อง`,
                 start: i * prev.sceneDuration,
                 end: (i + 1) * prev.sceneDuration,
                 prompt: def.prompt || "ดำเนินเรื่องต่อเนื่องในบรรยากาศเดิม รักษาความต่อเนื่องของตัวละครและแสง",
@@ -539,20 +576,26 @@
           } else if (nextScenes.length > targetCount) {
             nextScenes = nextScenes.slice(0, targetCount);
           }
-
-          nextScenes = nextScenes.map((sc, idx) => ({
-            ...sc,
-            start: idx * prev.sceneDuration,
-            end: (idx + 1) * prev.sceneDuration
-          }));
-
-          return { ...prev, scenes: nextScenes };
+          nextScenes = recalculateSceneTimings(nextScenes, prev.sceneDuration);
+          return {
+            ...prev,
+            totalDuration: nextScenes.length * prev.sceneDuration,
+            scenes: nextScenes
+          };
         });
-      }, [state.totalDuration, state.sceneDuration]);
+      };
 
-      const updateField = (key, value) => setState((prev) => ({ ...prev, [key]: value }));
-      const updateVisual = (key, value) => setState((prev) => ({ ...prev, visualLock: { ...prev.visualLock, [key]: value } }));
-      const updateAudio = (key, value) => setState((prev) => ({ ...prev, audioLock: { ...prev.audioLock, [key]: value } }));
+      const handleSceneDurationChange = (newShotSec) => {
+        setState((prev) => {
+          const updatedScenes = recalculateSceneTimings(prev.scenes, newShotSec);
+          return {
+            ...prev,
+            sceneDuration: newShotSec,
+            totalDuration: updatedScenes.length * newShotSec,
+            scenes: updatedScenes
+          };
+        });
+      };
 
       const handleSelectMasterStyle = (newStyle) => {
         setState((prev) => {
@@ -573,6 +616,190 @@
         });
       };
 
+      // ============================================================================
+      // 4. SMART STORY GENERATOR (ADAPT TOPIC & CHARACTERS INTO ALL SHOTS)
+      // ============================================================================
+      const handleAutoAdaptStoryToShots = () => {
+        const char1Name = state.characters[0] ? state.characters[0].name.split(" - ")[0] : "ตัวละครหลัก";
+        const char2Name = state.characters[1] ? state.characters[1].name.split(" - ")[0] : "คู่กรณี/ตัวละครที่สอง";
+        const topicShort = state.topic.trim() || "เรื่องราวที่กำหนด";
+
+        const beatTemplates = [
+          {
+            beat: "HOOK - ตะขอเกี่ยวจิต",
+            prompt: `ภาพโคลสอัพใบหน้าและแววตาของ ${char1Name} ท่ามกลางบรรยากาศที่ตึงเครียดของเรื่อง (${topicShort.slice(0, 70)}...) แสงเงาตัดกันจัดจ้าน`,
+            vo: `นี่คือจุดเริ่มต้นของเรื่องราวที่ไม่มีใครคาดคิด... เกี่ยวกับ ${char1Name}`
+          },
+          {
+            beat: "INTRO - เปิดโลกเรื่องเล่า",
+            prompt: `ภาพมุมกว้างเผยให้เห็นสถานที่หลักของเรื่อง (${state.visualLock.atmosphere}) โดยมี ${char1Name} ปรากฏตัวอยู่ในฉาก`,
+            vo: topicShort
+          },
+          {
+            beat: "ORIGIN / BACKSTORY - จุดกำเนิดของเรื่องราว",
+            prompt: `ภาพเล่าเรื่องราวปมหลังและที่มาของเหตุการณ์ ระหว่าง ${char1Name} และ ${char2Name} ท่ามกลางบรรยากาศที่กดดัน`,
+            vo: `ทุกอย่างเริ่มต้นขึ้นจากปมในอดีตที่เชื่อมโยงทุกคนเข้าด้วยกัน`
+          },
+          {
+            beat: "CHARACTER REVEAL - เผยโฉมและการตัดสินใจ",
+            prompt: `${char1Name} ยืนเด่นกลางเฟรม แสดงสีหน้ามุ่งมั่น เตรียมพร้อมเผชิญหน้ากับสถานการณ์ตรงหน้า แสงตกกระทบใบหน้าชัดเจน`,
+            vo: `${char1Name} ตัดสินใจก้าวเข้าสู่ศูนย์กลางของเรื่องราวนี้ด้วยตัวเอง`
+          },
+          {
+            beat: "INCITING INCIDENT - เหตุการณ์จุดชนวน",
+            prompt: `เกิดเหตุการณ์ไม่คาดฝันขึ้นตรงหน้า ${char1Name} ท่ามกลางบรรยากาศที่เปลี่ยนไปอย่างรวดเร็ว กล้องเคลื่อนเข้าหาตัวละคร`,
+            vo: `แต่แล้ว เหตุการณ์ที่เป็นจุดเปลี่ยนสำคัญก็เริ่มต้นขึ้นโดยไม่มีสัญญาณเตือน`
+          },
+          {
+            beat: "RISING TENSION - ความตึงเครียดก่อตัว",
+            prompt: `${char1Name} เดินหน้าค้นหาความจริง ท่ามกลางอุปสรรคและบรรยากาศที่บีบคั้นมากขึ้นเรื่อยๆ`,
+            vo: `ยิ่งก้าวเข้าไปลึกเท่าไหร่ แรงกดดันรอบตัวก็ยิ่งทวีความรุนแรงขึ้น`
+          },
+          {
+            beat: "CONFLICT - การปะทะและความขัดแย้ง",
+            prompt: `${char1Name} เผชิญหน้ากับความขัดแย้งครั้งสำคัญกับ ${char2Name} สีหน้าและท่าทางเต็มไปด้วยอารมณ์ที่ปะทุขึ้น`,
+            vo: `เมื่อความจริงปะทะกับความต้องการ ทางเลือกจึงเหลือเพียงการเผชิญหน้า`
+          },
+          {
+            beat: "CLIMAX / RESOLUTION - จุดไคลแมกซ์และบทสรุป",
+            prompt: `ฉากไคลแมกซ์ทรงพลัง ${char1Name} และ ${char2Name} ในวินาทีตัดสินชะตา แสงและองค์ประกอบภาพยิ่งใหญ่ระดับภาพยนตร์`,
+            vo: `และนี่คือบทสรุปของเรื่องราวทั้งหมดที่ทิ้งร่องรอยไว้ตลอดกาล`
+          }
+        ];
+
+        setState((prev) => {
+          const updatedScenes = prev.scenes.map((sc, idx) => {
+            const tpl = beatTemplates[idx % beatTemplates.length];
+            const isLast = idx === prev.scenes.length - 1 && prev.scenes.length > 3;
+            const chosen = isLast ? beatTemplates[beatTemplates.length - 1] : tpl;
+            return {
+              ...sc,
+              title: `${String(idx + 1).padStart(2, "0")} - ${chosen.beat}`,
+              prompt: chosen.prompt,
+              voiceover: chosen.vo,
+              activeCharIds: prev.characters.map((c) => c.id)
+            };
+          });
+          return { ...prev, scenes: updatedScenes };
+        });
+
+        // Expand all scenes so the user sees the updated story immediately
+        setExpandedSceneIds(state.scenes.map((s) => s.id));
+      };
+
+      // ============================================================================
+      // 5. SCENE CRUD (EDIT, ADD, DUPLICATE, MOVE, DELETE, EXPAND/COLLAPSE)
+      // ============================================================================
+      const toggleExpandScene = (id) => {
+        setExpandedSceneIds((prev) =>
+          prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+        );
+      };
+
+      const expandAllScenes = () => setExpandedSceneIds(state.scenes.map((s) => s.id));
+      const collapseAllScenes = () => setExpandedSceneIds([]);
+
+      const updateScene = (id, key, value) => {
+        setState((prev) => ({
+          ...prev,
+          scenes: prev.scenes.map((sc) => (sc.id === id ? { ...sc, [key]: value } : sc))
+        }));
+      };
+
+      const addNewScene = () => {
+        const newId = `scene-custom-${Date.now()}`;
+        setState((prev) => {
+          const nextIdx = prev.scenes.length;
+          const newScene = {
+            id: newId,
+            title: `SHOT ${String(nextIdx + 1).padStart(2, "0")} - ฉากใหม่ (แก้ไขชื่อและเนื้อเรื่องได้)`,
+            start: nextIdx * prev.sceneDuration,
+            end: (nextIdx + 1) * prev.sceneDuration,
+            prompt: "ระบุรายละเอียดเนื้อเรื่อง การกระทำของตัวละคร และอารมณ์ในช็อตนี้...",
+            shotSize: "Medium Shot (MS)",
+            movement: "Slow Dolly Push-In",
+            lens: "35mm Prime Cinema f/2.0",
+            lighting: "Low-Key Chiaroscuro (High Contrast 8:1)",
+            voiceover: "ระบุบทพูดหรือเสียงบรรยายของช็อตนี้...",
+            sfx: "",
+            activeCharIds: prev.characters.length > 0 ? [prev.characters[0].id] : []
+          };
+          const nextScenes = recalculateSceneTimings([...prev.scenes, newScene], prev.sceneDuration);
+          return {
+            ...prev,
+            totalDuration: nextScenes.length * prev.sceneDuration,
+            scenes: nextScenes
+          };
+        });
+        setExpandedSceneIds((prev) => [...prev, newId]);
+      };
+
+      const duplicateScene = (e, idx) => {
+        e.stopPropagation();
+        const source = state.scenes[idx];
+        const newId = `scene-dup-${Date.now()}`;
+        setState((prev) => {
+          const copy = {
+            ...source,
+            id: newId,
+            title: `${source.title} (Copy)`
+          };
+          const nextScenes = [...prev.scenes];
+          nextScenes.splice(idx + 1, 0, copy);
+          const timed = recalculateSceneTimings(nextScenes, prev.sceneDuration);
+          return {
+            ...prev,
+            totalDuration: timed.length * prev.sceneDuration,
+            scenes: timed
+          };
+        });
+        setExpandedSceneIds((prev) => [...prev, newId]);
+      };
+
+      const deleteScene = (e, id) => {
+        e.stopPropagation();
+        if (state.scenes.length <= 1) return;
+        setState((prev) => {
+          const filtered = prev.scenes.filter((sc) => sc.id !== id);
+          const timed = recalculateSceneTimings(filtered, prev.sceneDuration);
+          return {
+            ...prev,
+            totalDuration: timed.length * prev.sceneDuration,
+            scenes: timed
+          };
+        });
+      };
+
+      const moveScene = (e, idx, direction) => {
+        e.stopPropagation();
+        const targetIdx = idx + direction;
+        if (targetIdx < 0 || targetIdx >= state.scenes.length) return;
+        setState((prev) => {
+          const nextScenes = [...prev.scenes];
+          const temp = nextScenes[idx];
+          nextScenes[idx] = nextScenes[targetIdx];
+          nextScenes[targetIdx] = temp;
+          const timed = recalculateSceneTimings(nextScenes, prev.sceneDuration);
+          return { ...prev, scenes: timed };
+        });
+      };
+
+      const toggleSceneCharacter = (sceneId, charId) => {
+        setState((prev) => ({
+          ...prev,
+          scenes: prev.scenes.map((sc) => {
+            if (sc.id !== sceneId) return sc;
+            const current = sc.activeCharIds || [];
+            const exists = current.includes(charId);
+            const nextIds = exists ? current.filter((id) => id !== charId) : [...current, charId];
+            return { ...sc, activeCharIds: nextIds };
+          })
+        }));
+      };
+
+      // ============================================================================
+      // 6. CHARACTER CRUD & CHARACTER SHEET GENERATOR
+      // ============================================================================
       const updateCharacter = (id, key, value) => {
         setState((prev) => ({
           ...prev,
@@ -611,29 +838,6 @@
         }));
       };
 
-      const updateScene = (id, key, value) => {
-        setState((prev) => ({
-          ...prev,
-          scenes: prev.scenes.map((sc) => (sc.id === id ? { ...sc, [key]: value } : sc))
-        }));
-      };
-
-      const toggleSceneCharacter = (sceneId, charId) => {
-        setState((prev) => ({
-          ...prev,
-          scenes: prev.scenes.map((sc) => {
-            if (sc.id !== sceneId) return sc;
-            const current = sc.activeCharIds || [];
-            const exists = current.includes(charId);
-            const nextIds = exists ? current.filter((id) => id !== charId) : [...current, charId];
-            return { ...sc, activeCharIds: nextIds };
-          })
-        }));
-      };
-
-      // ============================================================================
-      // 4. CHARACTER SHEET PROMPT GENERATOR (PRE-PRODUCTION REFERENCE IMAGE)
-      // ============================================================================
       const buildCharacterSheetPrompt = (ch, idx) => {
         const slot = `CHAR_${String(idx + 1).padStart(2, "0")}`;
         const tpl = ch.sheetTemplate || "turnaround_4view";
@@ -655,7 +859,7 @@
       };
 
       // ============================================================================
-      // 5. VEO 3.1 SCENE PROMPT & STRUCTURED JSON COMPILER
+      // 7. VEO 3.1 SCENE PROMPT & STRUCTURED JSON COMPILER
       // ============================================================================
       const buildSingleScenePrompt = (scene, idx) => {
         const activeChars = state.characters.filter((ch) => (scene.activeCharIds || []).includes(ch.id));
@@ -666,7 +870,7 @@
         return [
           `[SCENE ${String(idx + 1).padStart(2, "0")} | ${formatTimecode(scene.start)}-${formatTimecode(scene.end)} (${state.sceneDuration}s) | ${scene.title}]`,
           `CHARACTER LOCK: ${charDescriptions}`,
-          `ACTION & STAGING: ${scene.prompt}`,
+          `STORY & ACTION STAGING: ${scene.prompt}`,
           `VEO 3.1 CAMERA: ${scene.shotSize || "Medium Shot (MS)"} | Movement: ${scene.movement || "Slow Dolly Push-In"} | Lens: ${scene.lens || "35mm Prime Cinema f/2.0"}`,
           `VEO 3.1 LIGHTING & COLOR: ${scene.lighting || "Low-Key Chiaroscuro"} | Palette: ${state.visualLock.colorPalette} | Atmosphere: ${state.visualLock.atmosphere}`,
           `AUDIO / VO: ${scene.voiceover ? `VO (${state.audioLock.language}): "${scene.voiceover}"` : "Ambient Only"} | SFX: ${scene.sfx || state.audioLock.ambientSfx}`,
@@ -680,8 +884,6 @@
             `================================================================================`,
             `PRE-PRODUCTION CHARACTER REFERENCE SHEETS (GENERATE IMAGES BEFORE VIDEO)`,
             `================================================================================`,
-            `คำแนะนำ: คัดลอก Prompt ด้านล่างไปเจนภาพนิ่ง (ด้วย Flux Dev / Midjourney / Imagen 3) เพื่อใช้เป็นภาพ Reference ตั้งต้นสำหรับล็อกหน้าตัวละครใน Veo 3.1 / Kling / Runway`,
-            ``,
             state.characters.map((ch, idx) => buildCharacterSheetPrompt(ch, idx)).join("\n\n--------------------------------------------------------------------------------\n\n"),
             `================================================================================`
           ].join("\n");
@@ -689,7 +891,7 @@
 
         if (state.outputMode === "VEO_JSON") {
           const veoJsonPayload = {
-            schema_version: "4.0-veo-3.1-production",
+            schema_version: "4.1-veo-3.1-production",
             engine_target: "Google Veo 3.1 / Multi-Node Cinematic Pipeline",
             project_metadata: {
               topic_premise: state.topic,
@@ -781,7 +983,7 @@
 
         return [
           `================================================================================`,
-          `AI LONG VIDEO DIRECTOR v4.0 — VEO 3.1 MASTER PRODUCTION SCRIPT`,
+          `AI LONG VIDEO DIRECTOR v4.1 — VEO 3.1 MASTER PRODUCTION SCRIPT`,
           `================================================================================`,
           `TOPIC: ${state.topic}`,
           `DURATION: ${state.totalDuration}s (${state.scenes.length} Shots x ${state.sceneDuration}s) | ASPECT RATIO: ${state.aspectRatio}`,
@@ -813,7 +1015,7 @@
       }, [state]);
 
       // ============================================================================
-      // 6. CLIPBOARD & FILE ACTIONS
+      // 8. CLIPBOARD & FILE ACTIONS
       // ============================================================================
       const copyText = async (text, onSuccess) => {
         try {
@@ -893,6 +1095,7 @@
             const parsed = JSON.parse(ev.target.result);
             if (parsed && Array.isArray(parsed.scenes) && Array.isArray(parsed.characters)) {
               setState(parsed);
+              setExpandedSceneIds(parsed.scenes.map((s) => s.id));
             } else {
               alert("ไฟล์ JSON ไม่ถูกต้องตามโครงสร้างโปรเจกต์");
             }
@@ -908,12 +1111,13 @@
         if (confirm("ต้องการรีเซ็ตข้อมูลทั้งหมดกลับเป็นค่าเริ่มต้นใช่หรือไม่?")) {
           const fresh = createInitialState();
           setState(fresh);
+          setExpandedSceneIds(fresh.scenes.map((s) => s.id));
           localStorage.removeItem(STORAGE_KEY);
         }
       };
 
       // ============================================================================
-      // 7. RENDER UI
+      // 9. RENDER UI
       // ============================================================================
       return h("div", { className: "app-container" }, [
         h("input", {
@@ -941,11 +1145,11 @@
               h("div", { key: "titles" }, [
                 h("div", { key: "t1", className: "flex-row-wrap" }, [
                   h("h1", { key: "h1", style: { fontSize: 18.5, fontWeight: 700, margin: 0 } }, "AI LONG VIDEO DIRECTOR"),
-                  h("span", { key: "b1", className: "badge badge-accent mono" }, "VEO 3.1 SPEC v4.0"),
-                  h("span", { key: "b2", className: "badge badge-purple mono" }, "CHAR SHEET STUDIO")
+                  h("span", { key: "b1", className: "badge badge-accent mono" }, "VEO 3.1 SPEC v4.1"),
+                  h("span", { key: "b2", className: "badge badge-purple mono" }, "EDITABLE STORY SHOTS")
                 ]),
                 h("p", { key: "p1", style: { fontSize: 12, color: "var(--text-muted)", margin: "0.18rem 0 0" } },
-                  `พารามิเตอร์กล้องและแสง Veo 3.1 รายฉาก • สร้าง Prompt เจนภาพ Character Sheet ตั้งต้น • ${state.scenes.length} ช็อต (${state.totalDuration}s)`
+                  `แก้ไขเนื้อเรื่อง บทพูด และมุมกล้อง Veo 3.1 ได้ทุกช็อต • เพิ่ม/ลบ/สลับลำดับช็อตอิสระ • ${state.scenes.length} ช็อต (${state.totalDuration}s)`
                 )
               ])
             ]),
@@ -974,7 +1178,7 @@
               h("div", { key: "hd", className: "card-header" }, [
                 h("div", { key: "l", className: "flex-row-wrap" }, [
                   h("span", { key: "n", className: "badge-step" }, "01"),
-                  h("h2", { key: "t", style: { fontSize: 13, fontWeight: 600, letterSpacing: "0.06em", margin: 0 } }, "PROJECT & MASTER GENRE")
+                  h("h2", { key: "t", style: { fontSize: 13, fontWeight: 600, letterSpacing: "0.06em", margin: 0 } }, "PROJECT & STORY PREMISE")
                 ]),
                 h("span", { key: "r", className: "mono", style: { fontSize: 11, color: "var(--accent-2)" } }, `${state.scenes.length} SHOTS`)
               ]),
@@ -987,13 +1191,20 @@
                     value: state.topic,
                     onChange: (e) => updateField("topic", e.target.value),
                     placeholder: "ระบุเรื่องย่อหรือพล็อตหลัก..."
-                  })
+                  }),
+                  h("div", { style: { marginTop: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" } }, [
+                    h("span", { style: { fontSize: 11, color: "var(--text-muted)" } }, "พิมพ์เรื่องย่อใหม่แล้วกดปุ่มด้านขวาเพื่อกระจายเนื้อเรื่องลงทุกช็อต:"),
+                    h("button", {
+                      type: "button",
+                      className: "btn btn-emerald",
+                      onClick: handleAutoAdaptStoryToShots
+                    }, "⚡ สร้างโครงเรื่องลงทุกช็อตอัตโนมัติ")
+                  ])
                 ]),
 
-                // Expanded Master Genre Selector with Optgroups
                 h("div", { key: "st" }, [
                   h("label", { className: "label-title", style: { color: "var(--accent-2)" } },
-                    "MASTER GENRE / STYLE (เลือกแนวหลัก — ซิงค์ Visual DNA อัตโนมัติสำหรับแนวยอดนิยม)"
+                    "MASTER GENRE / STYLE (เลือกแนวหลัก — ซิงค์ Visual DNA อัตโนมัติ)"
                   ),
                   h("select", {
                     className: "select-field",
@@ -1014,7 +1225,7 @@
                   style: { background: "#0e0e11", border: "1px solid var(--border)", borderRadius: 12, padding: "0.8rem" }
                 }, [
                   h("div", { key: "top", className: "flex-between", style: { marginBottom: "0.45rem" } }, [
-                    h("span", { className: "label-title", style: { margin: 0 } }, "TOTAL DURATION (ความยาวรวม)"),
+                    h("span", { className: "label-title", style: { margin: 0 } }, "TOTAL DURATION (ปรับจำนวนช็อตตามเวลา)"),
                     h("span", { className: "mono", style: { fontSize: 12.5, fontWeight: 700, color: "var(--accent-2)" } },
                       `${state.totalDuration}s (${formatTimecode(state.totalDuration)}) • ${state.scenes.length} ช็อต`
                     )
@@ -1022,15 +1233,15 @@
                   h("input", {
                     key: "rng",
                     type: "range",
-                    min: 24,
+                    min: state.sceneDuration,
                     max: 300,
                     step: state.sceneDuration,
                     value: state.totalDuration,
-                    onChange: (e) => updateField("totalDuration", parseInt(e.target.value, 10))
+                    onChange: (e) => handleDurationSliderChange(parseInt(e.target.value, 10))
                   }),
                   h("div", { key: "bot", className: "flex-between mono", style: { fontSize: 10, color: "var(--text-dim)", marginTop: "0.3rem" } }, [
-                    h("span", { key: "s1" }, "24s"),
-                    h("span", { key: "s2" }, "144s (18 Shots x 8s Veo 3.1)"),
+                    h("span", { key: "s1" }, `${state.sceneDuration}s (1 Shot)`),
+                    h("span", { key: "s2" }, "สามารถกด + เพิ่มช็อต หรือ ลบช็อต ในช่อง 04 ได้โดยตรง"),
                     h("span", { key: "s3" }, "300s")
                   ])
                 ]),
@@ -1038,7 +1249,7 @@
                 // Scene Duration & Aspect Ratio
                 h("div", { key: "grid-dur-ar", className: "grid-2" }, [
                   h("div", { key: "sc-dur" }, [
-                    h("label", { className: "label-title" }, "SHOT DURATION (Veo 3.1 แนะนำ 8s)"),
+                    h("label", { className: "label-title" }, "SHOT DURATION (ความยาวต่อช็อต)"),
                     h("div", { className: "grid-3" },
                       SCENE_DURATIONS.map((sec) =>
                         h("button", {
@@ -1046,7 +1257,7 @@
                           type: "button",
                           className: `chip-toggle mono ${state.sceneDuration === sec ? "active" : ""}`,
                           style: { justifyContent: "center", padding: "0.42rem" },
-                          onClick: () => updateField("sceneDuration", sec)
+                          onClick: () => handleSceneDurationChange(sec)
                         }, `${sec}s`)
                       )
                     )
@@ -1075,7 +1286,7 @@
                 ]),
                 h("button", { key: "add", className: "btn btn-primary", style: { padding: "0.3rem 0.75rem", fontSize: 11 }, onClick: addCharacter }, "+ เพิ่มตัวละคร")
               ]),
-              h("div", { key: "bd", className: "card-body", style: { maxHeight: 920, overflowY: "auto" } },
+              h("div", { key: "bd", className: "card-body", style: { maxHeight: 820, overflowY: "auto" } },
                 state.characters.map((ch, idx) => {
                   const isCharCopied = copiedCharId === ch.id;
                   const sheetPrompt = buildCharacterSheetPrompt(ch, idx);
@@ -1098,7 +1309,7 @@
                           className: "btn btn-purple mono",
                           style: { padding: "0.24rem 0.65rem", fontSize: 10.5 },
                           onClick: () => handleCopyCharSheet(ch, idx)
-                        }, isCharCopied ? "✓ คัดลอก Character Sheet แล้ว" : "🖼️ Copy Character Sheet Prompt"),
+                        }, isCharCopied ? "✓ คัดลอกแล้ว" : "🖼️ Copy Character Sheet"),
                         state.characters.length > 1 && h("button", {
                           className: "btn btn-danger-ghost",
                           onClick: () => removeCharacter(ch.id)
@@ -1145,9 +1356,8 @@
                       })
                     ]),
 
-                    // Character Sheet Layout Selector & Live Preview
                     h("div", { key: "sheet-cfg" }, [
-                      h("label", { className: "label-title", style: { color: "#d8b4fe" } }, "CHARACTER SHEET LAYOUT (รูปแบบภาพ Reference สำหรับนำไปเจนก่อนทำวิดีโอ)"),
+                      h("label", { className: "label-title", style: { color: "#d8b4fe" } }, "CHARACTER SHEET LAYOUT"),
                       h("select", {
                         className: "select-field",
                         style: { borderColor: "rgba(168,85,247,0.35)" },
@@ -1209,55 +1419,135 @@
           ]),
 
           // ========================================================================
-          // RIGHT COLUMN: VEO 3.1 SCENE BLUEPRINT & COMPILER OUTPUT
+          // RIGHT COLUMN: EDITABLE SHOT BLUEPRINT & COMPILER OUTPUT
           // ========================================================================
           h("div", { key: "col-right", className: "col-right flex-col-gap" }, [
 
-            // SECTION 04: VEO 3.1 SCENE-BY-SCENE SPEC
+            // SECTION 04: EDITABLE VEO 3.1 SCENE-BY-SCENE SPEC
             h("section", { key: "sec-04", className: "card" }, [
               h("div", { key: "hd", className: "card-header" }, [
                 h("div", { key: "l", className: "flex-row-wrap" }, [
-                  h("span", { key: "n", className: "badge-step" }, "04"),
-                  h("h2", { key: "t", style: { fontSize: 13, fontWeight: 600, letterSpacing: "0.06em", margin: 0 } }, "VEO 3.1 SHOT BLUEPRINT & CAMERA/LIGHTING METRICS"),
-                  h("span", { key: "b", className: "badge badge-accent mono" }, `${state.scenes.length} SHOTS`)
+                  h("span", { key: "n", className: "badge-step", style: { background: "var(--emerald)", color: "#000" } }, "04"),
+                  h("div", { key: "title-wrap" }, [
+                    h("div", { className: "flex-row-wrap" }, [
+                      h("h2", { style: { fontSize: 13.5, fontWeight: 700, letterSpacing: "0.05em", margin: 0 } }, "VEO 3.1 SHOT STORY & CAMERA EDITOR"),
+                      h("span", { className: "badge badge-accent mono" }, `${state.scenes.length} SHOTS`)
+                    ]),
+                    h("span", { style: { fontSize: 11, color: "var(--text-muted)" } },
+                      "แก้ไขเนื้อเรื่อง บทพูด ตัวละคร และมุมกล้องของแต่ละช็อตได้โดยตรง"
+                    )
+                  ])
                 ]),
-                h("span", { key: "r", className: "mono", style: { fontSize: 11, color: "var(--text-muted)" } },
-                  "กำหนดกล้อง เลนส์ และแสง Veo 3.1 แยกรายช็อต"
-                )
+
+                // Toolbar for Section 04: Quick Story Mode, Expand All, Collapse All, Add Shot
+                h("div", { key: "r", className: "flex-row-wrap" }, [
+                  h("button", {
+                    key: "quick-story",
+                    type: "button",
+                    className: `btn ${quickStoryMode ? "btn-emerald" : "btn-secondary"}`,
+                    onClick: () => setQuickStoryMode(!quickStoryMode)
+                  }, quickStoryMode ? "🎥 สลับโหมดเต็ม (รวมกล้อง Veo 3.1)" : "📝 โหมดเขียนเนื้อเรื่องรวดเดียว"),
+                  !quickStoryMode && h("button", {
+                    key: "exp-all",
+                    type: "button",
+                    className: "btn btn-secondary",
+                    onClick: expandAllScenes
+                  }, "กางทั้งหมด"),
+                  !quickStoryMode && h("button", {
+                    key: "col-all",
+                    type: "button",
+                    className: "btn btn-secondary",
+                    onClick: collapseAllScenes
+                  }, "พับทั้งหมด"),
+                  h("button", {
+                    key: "add-shot",
+                    type: "button",
+                    className: "btn btn-primary",
+                    onClick: addNewScene
+                  }, "+ เพิ่มช็อต")
+                ])
               ]),
 
-              h("div", { key: "bd", className: "card-body", style: { maxHeight: 740, overflowY: "auto", padding: "0.85rem" } },
+              // SHOT LIST CONTAINER
+              h("div", { key: "bd", className: "card-body", style: { maxHeight: 860, overflowY: "auto", padding: "0.9rem" } },
                 state.scenes.map((sc, idx) => {
-                  const isOpen = openSceneId === sc.id;
+                  const isOpen = quickStoryMode || expandedSceneIds.includes(sc.id);
                   const isSceneCopied = copiedSceneId === sc.id;
                   const activeCount = (sc.activeCharIds || []).length;
 
                   return h("div", { key: sc.id, className: `scene-item ${isOpen ? "active" : ""}` }, [
-                    // Scene Accordion Header
+                    // Scene Header Bar
                     h("div", {
                       key: "sc-hd",
                       className: "scene-header",
-                      onClick: () => setOpenSceneId(isOpen ? null : sc.id)
+                      onClick: () => !quickStoryMode && toggleExpandScene(sc.id)
                     }, [
-                      h("div", { key: "left", style: { display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 0 } }, [
+                      h("div", { key: "left", style: { display: "flex", alignItems: "flex-start", gap: "0.75rem", minWidth: 0, flex: 1 } }, [
                         h("span", {
                           key: "idx",
                           className: "mono",
                           style: {
-                            fontSize: 11, fontWeight: 700, padding: "0.25rem 0.55rem", borderRadius: 8,
-                            background: isOpen ? "var(--accent)" : "rgba(255,255,255,0.06)",
+                            fontSize: 11.5, fontWeight: 700, padding: "0.28rem 0.6rem", borderRadius: 8, marginTop: 2,
+                            background: isOpen ? "var(--accent)" : "rgba(255,255,255,0.07)",
                             color: isOpen ? "#fff" : "var(--text-muted)"
                           }
                         }, String(idx + 1).padStart(2, "0")),
-                        h("div", { key: "info", style: { minWidth: 0 } }, [
-                          h("div", { key: "title", style: { fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, sc.title),
-                          h("div", { key: "meta", className: "mono", style: { fontSize: 10.5, color: "var(--text-dim)" } },
+                        h("div", { key: "info", style: { minWidth: 0, flex: 1 } }, [
+                          h("div", { key: "title", style: { fontSize: 13.5, fontWeight: 700, color: "#fff" } }, sc.title),
+                          h("div", { key: "meta", className: "mono", style: { fontSize: 10.5, color: "var(--accent-2)", marginTop: 2 } },
                             `${formatTimecode(sc.start)}-${formatTimecode(sc.end)} (${state.sceneDuration}s) • ${sc.shotSize || "MS"} • ${sc.movement || "Push-In"} • ตัวละคร: ${activeCount}`
-                          )
+                          ),
+                          // Always show story preview when collapsed so user knows what's inside
+                          !isOpen && h("div", {
+                            key: "preview",
+                            style: {
+                              fontSize: 12, color: "var(--text-muted)", marginTop: "0.35rem",
+                              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"
+                            }
+                          }, `📖 เนื้อเรื่อง: ${sc.prompt}`)
                         ])
                       ]),
 
+                      // Action controls on the right of each shot header
                       h("div", { key: "right", className: "flex-row-wrap" }, [
+                        h("button", {
+                          key: "up",
+                          type: "button",
+                          title: "เลื่อนช็อตขึ้น",
+                          className: "btn-icon-sm",
+                          onClick: (e) => moveScene(e, idx, -1)
+                        }, "↑"),
+                        h("button", {
+                          key: "dn",
+                          type: "button",
+                          title: "เลื่อนช็อตลง",
+                          className: "btn-icon-sm",
+                          onClick: (e) => moveScene(e, idx, 1)
+                        }, "↓"),
+                        h("button", {
+                          key: "dup",
+                          type: "button",
+                          title: "ทำซ้ำช็อตนี้",
+                          className: "btn-icon-sm",
+                          onClick: (e) => duplicateScene(e, idx)
+                        }, "⧉"),
+                        state.scenes.length > 1 && h("button", {
+                          key: "del",
+                          type: "button",
+                          title: "ลบช็อตนี้",
+                          className: "btn-danger-ghost",
+                          onClick: (e) => deleteScene(e, sc.id)
+                        }, "✕"),
+                        !quickStoryMode && h("button", {
+                          key: "edit-btn",
+                          type: "button",
+                          className: `btn ${isOpen ? "btn-emerald" : "btn-secondary"}`,
+                          style: { padding: "0.24rem 0.65rem", fontSize: 11 },
+                          onClick: (e) => {
+                            e.stopPropagation();
+                            toggleExpandScene(sc.id);
+                          }
+                        }, isOpen ? "✓ ปิดกล่องแก้ไข" : "✏️ แก้ไขเนื้อเรื่อง"),
                         h("button", {
                           key: "copy-sc",
                           type: "button",
@@ -1268,20 +1558,73 @@
                             color: isSceneCopied ? "#fff" : undefined
                           },
                           onClick: (e) => handleCopySingleScene(e, sc, idx)
-                        }, isSceneCopied ? "✓ Copied" : "⎙ Copy Shot"),
-                        h("span", { key: "arr", style: { fontSize: 14, transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" } }, "⌄")
+                        }, isSceneCopied ? "✓ Copied" : "⎙ Copy Shot")
                       ])
                     ]),
 
-                    // Scene Accordion Body
+                    // Scene Editable Body
                     isOpen && h("div", {
                       key: "sc-bd",
-                      style: { padding: "0 1rem 1rem", display: "flex", flexDirection: "column", gap: "0.75rem", borderTop: "1px solid var(--border)" }
+                      style: { padding: "0.85rem 1rem 1rem", display: "flex", flexDirection: "column", gap: "0.8rem", borderTop: "1px solid var(--border)" }
                     }, [
+                      // STORY & NARRATIVE EDITOR BOX (Highlighted in Emerald so it's unmistakable)
+                      h("div", { key: "story-box", className: "story-editor-box" }, [
+                        h("div", { className: "flex-between" }, [
+                          h("span", { className: "mono", style: { fontSize: 11, fontWeight: 700, color: "#34d399" } },
+                            `📖 ส่วนแก้ไขเนื้อเรื่องและบทพูดของช็อตที่ ${String(idx + 1).padStart(2, "0")}`
+                          ),
+                          h("span", { style: { fontSize: 10.5, color: "var(--text-muted)" } }, "พิมพ์แก้ไขข้อความด้านล่างได้ทันที")
+                        ]),
+
+                        h("div", { key: "st" }, [
+                          h("label", { className: "label-title" }, "SHOT TITLE / NARRATIVE BEAT (ชื่อช็อต / จังหวะการเล่าเรื่อง)"),
+                          h("input", {
+                            className: "input-field",
+                            value: sc.title,
+                            onChange: (e) => updateScene(sc.id, "title", e.target.value),
+                            placeholder: "เช่น HOOK - เปิดฉากดึงดูดสายตา..."
+                          })
+                        ]),
+
+                        h("div", { key: "sc-prompt" }, [
+                          h("label", { className: "label-title", style: { color: "#34d399" } },
+                            "STORY & VISUAL ACTION (เนื้อเรื่อง การกระทำของตัวละคร และสิ่งที่เกิดขึ้นในช็อตนี้)"
+                          ),
+                          h("textarea", {
+                            className: "textarea-field",
+                            rows: 3,
+                            value: sc.prompt,
+                            onChange: (e) => updateScene(sc.id, "prompt", e.target.value),
+                            placeholder: "บรรยายเนื้อเรื่องและเหตุการณ์ที่เกิดขึ้นในช็อตนี้..."
+                          })
+                        ]),
+
+                        h("div", { key: "row-vo-sfx", className: "grid-2" }, [
+                          h("div", { key: "vo" }, [
+                            h("label", { className: "label-title" }, "VOICEOVER / DIALOGUE (บทพูดหรือเสียงบรรยายเนื้อเรื่องในช็อตนี้)"),
+                            h("input", {
+                              className: "input-field",
+                              placeholder: "บทพูดหรือเสียงบรรยาย...",
+                              value: sc.voiceover || "",
+                              onChange: (e) => updateScene(sc.id, "voiceover", e.target.value)
+                            })
+                          ]),
+                          h("div", { key: "sfx" }, [
+                            h("label", { className: "label-title" }, "SHOT FOLEY & SFX (เสียงประกอบในช็อตนี้)"),
+                            h("input", {
+                              className: "input-field",
+                              placeholder: "เช่น เสียงประตูปิด, เสียงฝีเท้า...",
+                              value: sc.sfx || "",
+                              onChange: (e) => updateScene(sc.id, "sfx", e.target.value)
+                            })
+                          ])
+                        ])
+                      ]),
+
                       // Active Character Selector per Scene
-                      h("div", { key: "char-select", style: { paddingTop: "0.75rem" } }, [
+                      h("div", { key: "char-select" }, [
                         h("label", { className: "label-title", style: { color: "var(--accent-2)" } },
-                          "ACTIVE CHARACTERS IN SHOT (เลือกเฉพาะตัวละครที่เข้าฉากนี้)"
+                          "ACTIVE CHARACTERS IN SHOT (คลิกเลือกตัวละครที่อยู่ในฉากนี้)"
                         ),
                         h("div", { className: "flex-row-wrap" },
                           state.characters.map((ch, cIdx) => {
@@ -1296,13 +1639,8 @@
                         )
                       ]),
 
-                      h("div", { key: "st" }, [
-                        h("label", { className: "label-title" }, "NARRATIVE BEAT / SHOT TITLE"),
-                        h("input", { className: "input-field", value: sc.title, onChange: (e) => updateScene(sc.id, "title", e.target.value) })
-                      ]),
-
-                      // Dedicated Veo 3.1 Camera & Lighting Box
-                      h("div", { key: "veo-spec", className: "veo-box" }, [
+                      // Veo 3.1 Camera & Lighting Metrics (Hidden in Quick Story Mode for cleaner writing)
+                      !quickStoryMode && h("div", { key: "veo-spec", className: "veo-box" }, [
                         h("div", { key: "vh", className: "flex-between" }, [
                           h("span", { className: "mono", style: { fontSize: 10.5, fontWeight: 600, color: "var(--accent-2)" } }, "🎥 VEO 3.1 CAMERA & LIGHTING PARAMETERS"),
                           h("span", { className: "badge badge-amber mono" }, "VEO 3.1 ENGINE READY")
@@ -1343,37 +1681,6 @@
                             }, VEO_LIGHTING_MODES.map((lt) => h("option", { key: lt, value: lt }, lt)))
                           ])
                         ])
-                      ]),
-
-                      h("div", { key: "sc-prompt" }, [
-                        h("label", { className: "label-title" }, "STAGING & MOTION ACTION PROMPT (การกระทำของตัวละครและรายละเอียดในช็อตนี้)"),
-                        h("textarea", {
-                          className: "textarea-field",
-                          rows: 3,
-                          value: sc.prompt,
-                          onChange: (e) => updateScene(sc.id, "prompt", e.target.value)
-                        })
-                      ]),
-
-                      h("div", { key: "row-vo-sfx", className: "grid-2" }, [
-                        h("div", { key: "vo" }, [
-                          h("label", { className: "label-title" }, "SHOT VOICEOVER / DIALOGUE (บทพูดฉากนี้)"),
-                          h("input", {
-                            className: "input-field",
-                            placeholder: "บทพูดหรือเสียงบรรยายในฉากนี้...",
-                            value: sc.voiceover || "",
-                            onChange: (e) => updateScene(sc.id, "voiceover", e.target.value)
-                          })
-                        ]),
-                        h("div", { key: "sfx" }, [
-                          h("label", { className: "label-title" }, "SHOT FOLEY & SFX (เสียงประกอบเฉพาะฉาก)"),
-                          h("input", {
-                            className: "input-field",
-                            placeholder: "เช่น เสียงประตูปิด, เสียงฝีเท้า...",
-                            value: sc.sfx || "",
-                            onChange: (e) => updateScene(sc.id, "sfx", e.target.value)
-                          })
-                        ])
                       ])
                     ])
                   ]);
@@ -1389,12 +1696,11 @@
                   h("div", { key: "t" }, [
                     h("h2", { style: { fontSize: 13, fontWeight: 600, letterSpacing: "0.06em", margin: 0 } }, "MASTER PRODUCTION COMPILER"),
                     h("span", { className: "mono", style: { fontSize: 10.5, color: "var(--text-muted)" } },
-                      `${compiledOutput.length.toLocaleString()} chars • รองรับ Veo 3.1 JSON Schema, Character Sheets และ Text Script`
+                      `${compiledOutput.length.toLocaleString()} chars • อัปเดตตามเนื้อเรื่องที่แก้ไขแบบ Real-time`
                     )
                   ])
                 ]),
 
-                // 3-Mode Switcher + Copy/Download
                 h("div", { key: "r", className: "flex-row-wrap" }, [
                   h("button", {
                     key: "mode-veo",
