@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Long Video Director v4.0 — Veo 3.1 JSON Spec & Character Sheet Studio</title>
+  <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+    :root {
+      --bg: #09090b;
+      --bg-elevated: #121215;
+      --surface: hsla(0, 0%, 100%, 0.035);
+      --surface-2: hsla(0, 0%, 100%, 0.065);
+      --surface-3: hsla(0, 0%, 100%, 0.1);
+      --border: hsla(0, 0%, 100%, 0.08);
+      --border-strong: hsla(0, 0%, 100%, 0.16);
+      --text: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --text-dim: #52525b;
+      --accent: #3b82f6;
+      --accent-2: #60a5fa;
+      --accent-glow: rgba(59, 130, 246, 0.35);
+      --accent-surface: rgba(59, 130, 246, 0.12);
+      --purple: #a855f7;
+      --purple-surface: rgba(168, 85, 247, 0.12);
+      --amber: #f59e0b;
+      --amber-surface: rgba(245, 158, 11, 0.12);
+      --success: #22c55e;
+      --danger: #ef4444;
+    }
+
+    *, :after, :before {
+      box-sizing: border-box;
+      border: 0 solid #e5e7eb;
+      font-family: 'Sarabun', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace !important;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 999px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      background: var(--surface-3);
+      border-radius: 999px;
+      outline: none;
+      width: 100%;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid #09090b;
+      box-shadow: 0 0 0 4px var(--accent-surface), 0 0 16px var(--accent-glow);
+      cursor: pointer;
+    }
+
+    .app-container { position: relative; z-index: 10; max-width: 1640px; margin: 0 auto; padding: 0 1rem 3rem; }
+    @media (min-width: 768px) { .app-container { padding: 0 1.5rem 3rem; } }
+    @media (min-width: 1024px) { .app-container { padding: 0 2rem 3rem; } }
+
+    .sticky-header {
+      position: sticky; top: 0; z-index: 30;
+      backdrop-filter: blur(24px);
+      background: rgba(9, 9, 11, 0.82);
+      border-bottom: 1px solid var(--border);
+      margin: 0 -1rem; padding: 1.1rem 1rem;
+    }
+    @media (min-width: 768px) { .sticky-header { margin: 0 -1.5rem; padding: 1.15rem 1.5rem; } }
+    @media (min-width: 1024px) { .sticky-header { margin: 0 -2rem; padding: 1.15rem 2rem; } }
+
+    .main-grid {
+      display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-top: 1.5rem; align-items: start;
+    }
+    @media (min-width: 1024px) {
+      .main-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1.5rem; }
+      .col-left { grid-column: span 5 / span 5; }
+      .col-right { grid-column: span 7 / span 7; }
+    }
+    @media (min-width: 1280px) {
+      .col-left { grid-column: span 5 / span 5; }
+      .col-right { grid-column: span 7 / span 7; }
+    }
+
+    .card {
+      border-radius: 18px; border: 1px solid var(--border);
+      background: var(--surface); backdrop-filter: blur(20px); overflow: hidden;
+    }
+    .card-accent {
+      border-radius: 18px; border: 1px solid rgba(59, 130, 246, 0.24);
+      background: rgba(59, 130, 246, 0.045); backdrop-filter: blur(20px); overflow: hidden;
+    }
+    .card-header {
+      padding: 0.95rem 1.25rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;
+    }
+    .card-body { padding: 1.15rem; display: flex; flex-direction: column; gap: 0.95rem; }
+
+    .input-field, .textarea-field, .select-field {
+      width: 100%; border-radius: 10px; border: 1px solid var(--border);
+      background: #101013; padding: 0.52rem 0.75rem; font-size: 12.5px; color: #eaeaea;
+      transition: all 0.15s ease; outline: none;
+    }
+    .textarea-field { resize: vertical; line-height: 1.55; }
+    .input-field:focus, .textarea-field:focus, .select-field:focus {
+      border-color: var(--accent); background: #151519;
+    }
+
+    .label-title {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.07em;
+      color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.25rem; display: block;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+      border-radius: 999px; padding: 0.42rem 0.85rem; font-size: 11.5px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s ease; border: 1px solid transparent;
+    }
+    .btn-primary {
+      background: var(--accent); color: #fff; box-shadow: 0 0 18px var(--accent-glow);
+    }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-purple {
+      background: var(--purple-surface); color: #d8b4fe; border-color: rgba(168, 85, 247, 0.35);
+    }
+    .btn-purple:hover { background: var(--purple); color: #fff; }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06); color: #fff; border-color: var(--border);
+    }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.12); border-color: var(--border-strong); }
+    .btn-danger-ghost {
+      background: transparent; color: var(--text-dim); padding: 0.2rem 0.5rem; font-size: 11px;
+    }
+    .btn-danger-ghost:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      border-radius: 999px; padding: 0.18rem 0.6rem; font-size: 10px; font-weight: 600;
+    }
+    .badge-accent {
+      background: var(--accent-surface); border: 1px solid rgba(59, 130, 246, 0.3); color: var(--accent-2);
+    }
+    .badge-purple {
+      background: var(--purple-surface); border: 1px solid rgba(168, 85, 247, 0.3); color: #d8b4fe;
+    }
+    .badge-amber {
+      background: var(--amber-surface); border: 1px solid rgba(245, 158, 11, 0.3); color: #fcd34d;
+    }
+    .badge-step {
+      width: 24px; height: 24px; border-radius: 50%; background: rgba(255, 255, 255, 0.08);
+      display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600;
+    }
+
+    .chip-toggle {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.28rem 0.65rem; border-radius: 999px; font-size: 11px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s ease; border: 1px solid var(--border);
+      background: #131316; color: var(--text-muted);
+    }
+    .chip-toggle.active {
+      background: var(--accent-surface); border-color: var(--accent); color: #fff;
+    }
+
+    .scene-item {
+      border-radius: 14px; border: 1px solid var(--border); background: #0e0e11;
+      transition: all 0.15s ease; overflow: hidden;
+    }
+    .scene-item.active {
+      border-color: rgba(59, 130, 246, 0.45); background: rgba(59, 130, 246, 0.05);
+    }
+    .scene-header {
+      width: 100%; padding: 0.7rem 0.95rem; display: flex; align-items: center;
+      justify-content: space-between; gap: 0.75rem; background: transparent;
+      color: inherit; text-align: left; cursor: pointer;
+    }
+
+    .char-sheet-preview {
+      border-radius: 10px;
+      background: #09090b;
+      border: 1px dashed rgba(168, 85, 247, 0.35);
+      padding: 0.65rem;
+      font-size: 11px;
+      color: #d8b4fe;
+      line-height: 1.5;
+    }
+
+    .veo-box {
+      border-radius: 12px;
+      background: rgba(59, 130, 246, 0.04);
+      border: 1px solid rgba(59, 130, 246, 0.18);
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+    @media (max-width: 640px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+    .flex-row-wrap { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+    .flex-between { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+    .flex-col-gap { display: flex; flex-direction: column; gap: 1.2rem; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script>
+    const { useState, useEffect, useMemo, useRef } = React;
+    const h = React.createElement;
+
+    const STORAGE_KEY = "AI_LONG_VIDEO_DIRECTOR_V4_VEO31_STATE";
+
+    // ============================================================================
+    // 1. EXPANDED MASTER GENRE / STYLE CATALOG WITH PRESET DNA
+    // ============================================================================
+    const MASTER_GENRE_GROUPS = [
+      {
+        category: "Thai Cultural, Folklore & Literature (ไทยร่วมสมัย / วรรณคดี / ความเชื่อ)",
+        items: [
+          "Documentary Horror (สารคดีสยองขวัญไทย)",
+          "Thai Mythology Horror (ลี้ลับตำนานผีและไสยเวทไทย)",
+          "Classical Ramakien & Thai Literature Epic (มหากาพย์รามเกียรติ์และวรรณคดีไทย)",
+          "Lai Rod Nam & Traditional Thai Fine Art (วิจิตรศิลป์ลายรดน้ำและงานช่างสิบหมู่)",
+          "Sacred Naga & Garuda Folklore Fantasy (ตำนานพญานาค-พญาครุฑและป่าหิมพานต์)",
+          "Traditional Thai Architecture & Period Drama (พีเรียดเรือนหมู่โบราณและประวัติศาสตร์)",
+          "Atmospheric Mountain Road Noir (ระทึกขวัญเส้นทางภูเขาหมอกมืด)"
+        ]
+      },
+      {
+        category: "Cinematic & Fine Art Lighting (ภาพยนตร์และศิลปะแสงเงา)",
+        items: [
+          "High Renaissance Chiaroscuro Cinema (แสงเงาเรเนซองส์ คอนทราสต์จัด ลุ่มลึก)",
+          "Cinematic Thriller & Mystery (ภาพยนตร์ระทึกขวัญสืบสวน)",
+          "Drama Realistic & Emotional (ดราม่าสมจริงเน้นอารมณ์ตัวละคร)",
+          "Neo-Noir Crime & Urban Night (นีโอนัวร์ ไฟนีออนสะท้อนถนนเปียกฝน)",
+          "Minimalist Arthouse & Poetic (อาร์ตเฮาส์มินิมอล องค์ประกอบสมมาตร)",
+          "Anamorphic Widescreen Blockbuster (บล็อกบัสเตอร์จอกว้าง เลนส์ Anamorphic)"
+        ]
+      },
+      {
+        category: "Action, Dance & Sci-Fi (แอ็กชัน / เต้น / ไซไฟอนาคต)",
+        items: [
+          "Cybernetic Street & B-Boy Breaking Action (ไซเบอร์สตรีทและแอ็กชันเต้น B-Boy)",
+          "Cyberpunk Neo-Bangkok Sci-Fi (ไซเบอร์พังก์โลกอนาคต)",
+          "Martial Arts & Wuxia Mythic Action (แอ็กชันกำลังภายในและเทพเจ้าตะวันออก)",
+          "High-Speed Sports & Choreography (ภาพยนตร์กีฬาและการเคลื่อนไหวความเร็วสูง)"
+        ]
+      },
+      {
+        category: "Specialized Formats & Animation (รูปแบบพิเศษและแอนิเมชัน)",
+        items: [
+          "Found Footage & POV Camcorder (ภาพจากกล้องวงจรปิด / กล้องถือถ่ายสมจริง)",
+          "3D Stylized Feature Animation (แอนิเมชัน 3 มิติคุณภาพระดับภาพยนตร์)",
+          "Dark Anime & 2D Sakuga (อนิเมะดาร์กแฟนตาซี งานภาพละเอียดสูง)",
+          "Stop-Motion Woodcarving & Stucco Craft (สต็อปโมชันงานแกะสลักไม้และปูนปั้น)"
+        ]
+      }
+    ];
+
+    const STYLE_DNA_PRESETS = {
+      "Documentary Horror (สารคดีสยองขวัญไทย)": {
+        style: "Documentary Horror, photorealistic, ultra-detailed skin texture, natural practical lighting, 8K, shot on ARRI Alexa 65, subtle 35mm film grain",
+        atmosphere: "Abandoned traditional Thai wooden village at dusk, low ground mist, high humidity, swaying banana leaves, eerie stillness",
+        colorPalette: "Cold desaturated teal & amber, natural skin tones, crushed shadows, 3200K warm candle highlights vs 6500K cool moonlight"
+      },
+      "Classical Ramakien & Thai Literature Epic (มหากาพย์รามเกียรติ์และวรรณคดีไทย)": {
+        style: "Epic Thai classical mythology cinema, hyper-detailed gold embroidery, ornate crown (ชฎา) and traditional armor textures, photorealistic 8K, ARRI Alexa LF",
+        atmosphere: "Grand ancient Ayutthaya / Himmapan mythical realm, floating golden dust motes, sacred incense smoke, dramatic god rays piercing dark storm clouds",
+        colorPalette: "Rich royal gold, deep vermilion red, emerald green, and obsidian shadow contrast, HDR color grading"
+      },
+      "Lai Rod Nam & Traditional Thai Fine Art (วิจิตรศิลป์ลายรดน้ำและงานช่างสิบหมู่)": {
+        style: "Living Thai Lai Rod Nam gold-on-black lacquerware aesthetic blended with photorealistic 3D carved teakwood and stucco relief textures, macro detail",
+        atmosphere: "Sacred temple hall illuminated by flickering oil lamps, golden leaf reflections on black lacquer panels, mystical serene ambiance",
+        colorPalette: "Pure 24K gold leaf highlights against deep matte charcoal-black and agedcrimson lacquer tones"
+      },
+      "High Renaissance Chiaroscuro Cinema (แสงเงาเรเนซองส์ คอนทราสต์จัด ลุ่มลึก)": {
+        style: "High Renaissance Caravaggio chiaroscuro cinematography, extreme directional key light, rich oil-painting texture depth with photorealistic skin pores, Cooke Anamorphic lens",
+        atmosphere: "Heavy dramatic darkness with a single shaft of warm celestial light cutting across the subject, suspended dust particles",
+        colorPalette: "Deep Rembrandt umber blacks, warm golden ochre key light, muted crimson and bronze midtones, fill ratio 8:1"
+      },
+      "Cybernetic Street & B-Boy Breaking Action (ไซเบอร์สตรีทและแอ็กชันเต้น B-Boy)": {
+        style: "High-octane kinetic dance cinema, crisp shutter speed 1/500s for freeze frames, detailed mechanical cybernetic limb reflections, LED light trails, Red V-Raptor 8K",
+        atmosphere: "Underground neon-lit concrete cypher arena, wet floor reflections, volumetric stage haze, energetic crowd silhouettes",
+        colorPalette: "Electric cyan, magenta LED accents, metallic chrome highlights, deep asphalt shadows"
+      },
+      "Atmospheric Mountain Road Noir (ระทึกขวัญเส้นทางภูเขาหมอกมืด)": {
+        style: "Atmospheric nocturnal road thriller, realistic headlight beams cutting through dense mountain fog, wet asphalt specular reflections, Sony Venice 2 low-light ISO",
+        atmosphere: "Winding steep mountain road in Chiang Mai (Samoeng route) at midnight, thick swirling mist, towering pine and bamboo silhouettes",
+        colorPalette: " Sodium-vapor amber streetlamps vs cold tungsten headlights and deep midnight blue fog"
+      }
+    };
+
+    // ============================================================================
+    // 2. VEO 3.1 CAMERA & LIGHTING OPTIONS
+    // ============================================================================
+    const VEO_SHOT_SIZES = [
+      "Extreme Close-Up (ECU)",
+      "Close-Up (CU)",
+      "Medium Close-Up (MCU)",
+      "Medium Shot (MS)",
+      "Medium Full Shot (Cowboy/MFS)",
+      "Full Body Wide Shot (WS)",
+      "Extreme Wide Establishing Shot (EWS)",
+      "Over-The-Shoulder (OTS)",
+      "Low-Angle Hero Shot",
+      "High-Angle Vulnerability Shot"
+    ];
+
+    const VEO_CAMERA_MOVEMENTS = [
+      "Static Locked-Off Tripod",
+      "Slow Dolly Push-In",
+      "Slow Dolly Pull-Back",
+      "Handheld Organic Micro-Shake",
+      "Smooth Gimbal Tracking Follow",
+      "180-Degree Orbit Arc",
+      "Slow Pedestal Crane Up",
+      "Slow Pedestal Crane Down",
+      "Dynamic Whip Pan",
+      "Slow Roll Dutch Tilt"
+    ];
+
+    const VEO_LENS_SPECS = [
+      "24mm Wide Anamorphic f/2.8",
+      "35mm Prime Cinema f/2.0",
+      "50mm Standard Prime f/1.4",
+      "85mm Portrait Prime f/1.8 (Shallow DOF)",
+      "100mm Macro Probe Lens f/2.8",
+      "135mm Telephoto Compression f/2.0"
+    ];
+
+    const VEO_LIGHTING_MODES = [
+      "Low-Key Chiaroscuro (High Contrast 8:1)",
+      "Cold Moonlight 6500K + Warm Candle 2700K Rim",
+      "Volumetric Fog God-Rays (Tyndall Effect)",
+      "Flickering Firelight / Torchlight Dynamic Shift",
+      "Soft Overcast Dusk / Blue Hour Diffused",
+      "Hard Flashlight Beam in Pitch Darkness",
+      "High-Contrast Neon Cyber Specular",
+      "Golden Hour Warm Backlight 3500K"
+    ];
+
+    const CHARACTER_SHEET_TEMPLATES = [
+      { id: "turnaround_4view", label: "4-View Full Body Turnaround + Face Close-up (มาตรฐานล็อกตัวละคร)" },
+      { id: "expression_grid", label: "Character Expression & Lighting Study Sheet (เน้นล็อกใบหน้าทุกอารมณ์)" },
+      { id: "costume_prop", label: "Costume, Texture & Prop Breakdown Sheet (เน้นล็อกชุดและเครื่องประดับ)" }
+    ];
+
+    const SCENE_BEATS = [
+      "HOOK - ตะขอเกี่ยวจิต",
+      "INTRO - เปิดโลกเรื่องเล่า",
+      "KARMA ORIGIN - จุดกำเนิดกรรม",
+      "CHARACTER 01 REVEAL - เผยโฉมตัวละคร",
+      "INCITING INCIDENT - เหตุกระตุ้น",
+      "RISING DREAD 01 - ความกลัวค่อยๆ ก่อ",
+      "CHARACTER CONFLICT - ความขัดแย้ง",
+      "REVELATION 01 - เผยความจริงชั้นแรก",
+      "MIDPOINT - จุดกึ่งกลางบิดผัน",
+      "RISING DREAD 02 - ความกลัวทวีคูณ",
+      "KARMA PAYBACK 01 - กรรมเริ่มตามสนอง",
+      "FALSE HOPE - ความหวังจอมปลอม",
+      "CHARACTER BREAKDOWN - ตัวละครแตกสลาย",
+      "KARMA PAYBACK 02 - จุดพีคกรรมสนอง",
+      "TWIST - หักมุม",
+      "CLIMAX - จุดไคลแมกซ์",
+      "AFTERMATH - ผลพวง",
+      "MORAL / OUTRO - ข้อคิดปิดเรื่อง"
+    ];
+
+    const DEFAULT_SCENE_PROMPTS = [
+      { prompt: "ภาพโคลสอัพดวงตาสั่นไหวในความมืด แสงเทียนสะท้อนในตาดำ เหงื่อซึมข้างขมับ", shotSize: "Extreme Close-Up (ECU)", movement: "Slow Dolly Push-In", lens: "85mm Portrait Prime f/1.8 (Shallow DOF)", lighting: "Cold Moonlight 6500K + Warm Candle 2700K Rim", vo: "บางครั้ง... กรรมไม่ได้ตามมาในชาตินี้ แต่มันรอเราอยู่ที่เดิมเสมอ", sfx: "เสียงหัวใจเต้นตึกตัก เสียงกระซิบแผ่วเบา" },
+      { prompt: "ภาพกว้างของหมู่บ้านไม้โบราณร้างท่ามกลางหมอกหนาในยามโพล้เพล้ ต้นกล้วยไหวเบาๆ", shotSize: "Extreme Wide Establishing Shot (EWS)", movement: "Slow Pedestal Crane Down", lens: "24mm Wide Anamorphic f/2.8", lighting: "Volumetric Fog God-Rays (Tyndall Effect)", vo: "นี่คือหมู่บ้านที่ทุกคนหายตัวไปพร้อมกันในคืนวันพระใหญ่", sfx: "เสียงลมพัดใบไม้แห้ง เสียงจิ้งหรีดทุ้มต่ำ" },
+      { prompt: "ย้อนอดีตภาพโทนสีซีเปียอุ่นตัดกับเงามืด ชาวบ้านกำลังยืนล้อมกระท่อมไม้เก่าด้วยท่าทีคุกคาม", shotSize: "Full Body Wide Shot (WS)", movement: "Handheld Organic Micro-Shake", lens: "35mm Prime Cinema f/2.0", lighting: "Flickering Firelight / Torchlight Dynamic Shift", vo: "ยี่สิบปีก่อน ความกลัวทำให้คนทั้งหมู่บ้านตัดสินใจทำสิ่งที่เลวร้ายที่สุด", sfx: "เสียงไฟปะทุ เสียงคนฮือฮาไกลๆ" },
+      { prompt: "ตัวละครหลักยืนนิ่งกลางถนนดินทางเข้าหมู่บ้าน สะพายกระเป๋าผ้า มองตรงไปข้างหน้าด้วยแววตาเศร้าแต่มุ่งมั่น", shotSize: "Medium Full Shot (Cowboy/MFS)", movement: "Smooth Gimbal Tracking Follow", lens: "35mm Prime Cinema f/2.0", lighting: "Soft Overcast Dusk / Blue Hour Diffused", vo: "ดาวกลับมาที่นี่อีกครั้ง เพียงเพื่อตามหาแม่ที่หายตัวไป", sfx: "เสียงฝีเท้าเหยียบดินชื้น" },
+      { prompt: "ประตูไม้เก่าของบ้านร้างค่อยๆ แง้มเปิดออกเองช้าๆ ทั้งที่ไม่มีลม ฝุ่นฟุ้งกระจายในลำแสง", shotSize: "Medium Shot (MS)", movement: "Slow Dolly Push-In", lens: "50mm Standard Prime f/1.4", lighting: "Low-Key Chiaroscuro (High Contrast 8:1)", vo: "แต่ทันทีที่ก้าวพ้นเขตหมู่บ้าน ประตูบ้านหลังเดิมกลับเปิดต้อนรับเธอเอง", sfx: "เสียงบานพับไม้เอี๊ยดอ๊าดยาวนาน" },
+      { prompt: "ตัวละครเดินสำรวจโถงบ้านไม้มืดๆ มีเงาตะคุ่มเคลื่อนผ่านฉากหลังอย่างรวดเร็วที่หางตา", shotSize: "Over-The-Shoulder (OTS)", movement: "Handheld Organic Micro-Shake", lens: "35mm Prime Cinema f/2.0", lighting: "Hard Flashlight Beam in Pitch Darkness", vo: "ทุกย่างก้าวบนพื้นไม้ผุพัง เหมือนมีสายตาคู่หนึ่งจ้องมองมาจากมุมมืด", sfx: "เสียงไม้ลั่นเอี๊ยด เสียงลมหายใจแผ่วๆ" },
+      { prompt: "ตัวละครชะงักหยุดยืนหน้าโต๊ะหมู่บูชาเก่าที่เต็มไปด้วยหยากไย่ สีหน้าตึงเครียดและลังเล", shotSize: "Medium Close-Up (MCU)", movement: "Static Locked-Off Tripod", lens: "50mm Standard Prime f/1.4", lighting: "Low-Key Chiaroscuro (High Contrast 8:1)", vo: "ใจหนึ่งอยากหันหลังกลับ แต่อีกใจรู้ดีว่าความจริงอยู่หลังบานประตูห้องในสุด", sfx: "เสียงบรรยากาศกดดันความถี่ต่ำ (Low drone)" },
+      { prompt: "มือสั่นเทาส่องไฟฉายไปพบสมุดข่อยโบราณและสร้อยพระเปื้อนดินวางอยู่บนพานเก่า", shotSize: "Extreme Close-Up (ECU)", movement: "Slow Dolly Push-In", lens: "100mm Macro Probe Lens f/2.8", lighting: "Hard Flashlight Beam in Pitch Darkness", vo: "และเธอก็ได้พบสร้อยของแม่... วางคู่กับบันทึกคำสาปของหญิงชรา", sfx: "เสียงกระดาษเก่ากรอบแกรบ" },
+      { prompt: "ใบหน้าของตัวละครเปลี่ยนเป็นตกตะลึงเมื่ออ่านข้อความจบ แสงไฟฉายสั่นระริก", shotSize: "Close-Up (CU)", movement: "Slow Dolly Push-In", lens: "85mm Portrait Prime f/1.8 (Shallow DOF)", lighting: "Cold Moonlight 6500K + Warm Candle 2700K Rim", vo: "คนสุดท้ายที่จุดไฟเผาบ้านหมอผีในคืนนั้น... คือครอบครัวของเธอเอง", sfx: "เสียงดนตรีหยุดนิ่งกะทันหัน (Sudden silence)" },
+      { prompt: "หน้าต่างไม้ทุกบานในบ้านกระแทกปิดพร้อมกันอย่างรุนแรง เทียนดับวูบ เหลือเพียงแสงจันทร์สีฟ้าซีด", shotSize: "Full Body Wide Shot (WS)", movement: "Dynamic Whip Pan", lens: "24mm Wide Anamorphic f/2.8", lighting: "Cold Moonlight 6500K + Warm Candle 2700K Rim", vo: "วินาทีที่ความจริงถูกเปิดเผย ทางออกเดียวของเธอก็ถูกปิดตาย", sfx: "เสียงหน้าต่างกระแทกปังดังสนั่น" },
+      { prompt: "ตัวละครวิ่งหนีสะดุดล้มลงบนพื้นไม้ รอบตัวมีควันดำและภาพหลอนของชาวบ้านในอดีตปรากฏขึ้นจางๆ", shotSize: "Low-Angle Hero Shot", movement: "Handheld Organic Micro-Shake", lens: "24mm Wide Anamorphic f/2.8", lighting: "Flickering Firelight / Torchlight Dynamic Shift", vo: "บ่วงกรรมที่ถูกปลุกขึ้น เริ่มฉุดรั้งให้เธอต้องเผชิญกับความทรมานเดียวกัน", sfx: "เสียงสะดุดล้ม เสียงกระซิบรอบทิศทาง" },
+      { prompt: "ตัวละครมองเห็นแสงสว่างที่ประตูหลังบ้าน จึงรีบคลานเข้าไปหาด้วยรอยยิ้มแห่งความหวัง แต่มีเงาร่างหญิงชรานั่งรออยู่", shotSize: "Medium Shot (MS)", movement: "Slow Dolly Pull-Back", lens: "50mm Standard Prime f/1.4", lighting: "Low-Key Chiaroscuro (High Contrast 8:1)", vo: "แสงสว่างที่ปลายทาง ดูเหมือนจะเป็นทางรอด... แต่กลับเป็นกับดักที่รออยู่แล้ว", sfx: "เสียงไม้เท้าเคาะพื้นไม้ช้าๆ ตึก... ตึก..." },
+      { prompt: "ตัวละครทรุดตัวนั่งคุกเข่าร้องไห้ด้วยความหวาดกลัวสุดขีด ยกมือไหว้ขอขมาในความมืด", shotSize: "High-Angle Vulnerability Shot", movement: "Slow Pedestal Crane Up", lens: "35mm Prime Cinema f/2.0", lighting: "Cold Moonlight 6500K + Warm Candle 2700K Rim", vo: "ไม่มีคำแก้ตัวใดเหลืออยู่ นอกจากน้ำตาแห่งความสำนึกผิด", sfx: "เสียงสะอื้นก้องในห้องไม้ว่างเปล่า" },
+      { prompt: "ร่างของหญิงชราหมอผีเดินก้าวออกมาจากเงามืดอย่างช้าๆ ดวงตาขุ่นขาวจ้องมองลงมา แสงสีแดงหม่นทาบทับฉาก", shotSize: "Low-Angle Hero Shot", movement: "Slow Dolly Push-In", lens: "50mm Standard Prime f/1.4", lighting: "Flickering Firelight / Torchlight Dynamic Shift", vo: "วิญญาณยายคำปรากฏกายขึ้นทวงถามหนี้ชีวิตที่ถูกพรากไป", sfx: "เสียงพิณอีสานโหยหวนบาดลึก" },
+      { prompt: "กล้องหมุนเผยให้เห็นว่าแท้จริงแล้วตัวละครกำลังถือตะเกียงไฟโบราณดวงเดียวกับในอดีต ภาพซ้อนทับระหว่างอดีตกับปัจจุบัน", shotSize: "Medium Close-Up (MCU)", movement: "180-Degree Orbit Arc", lens: "35mm Prime Cinema f/2.0", lighting: "Flickering Firelight / Torchlight Dynamic Shift", vo: "แต่ความจริงที่หักมุมที่สุด... คือดวงจิตของดาวคือผู้ที่กลับมาชดใช้ด้วยตัวเอง", sfx: "เสียงระฆังวัดดังกังวานไกลๆ" },
+      { prompt: "ตัวละครก้มกราบลงกับพื้นอย่างสงบ ยอมรับชะตากรรม เงาร่างหญิงชราค่อยๆ ยื่นมือเหี่ยวย่นมาแตะศีรษะแล้วสลายกลายเป็นละอองแสง", shotSize: "Full Body Wide Shot (WS)", movement: "Slow Dolly Pull-Back", lens: "50mm Standard Prime f/1.4", lighting: "Volumetric Fog God-Rays (Tyndall Effect)", vo: "เมื่อความแค้นได้รับการยอมรับและขอขมาด้วยใจจริง โซ่ตรวนแห่งกรรมจึงค่อยๆ คลายออก", sfx: "เสียงลมพัดผ่านอย่างสงบ เสียงกระดิ่งลม" },
+      { prompt: "รุ่งเช้าในหมู่บ้านร้าง แสงแดดอ่อนส่องผ่านหมอกจางๆ บ้านไม้กลับมาเงียบสงบ เหลือเพียงสร้อยพระวางอยู่หน้าบันได", shotSize: "Extreme Wide Establishing Shot (EWS)", movement: "Static Locked-Off Tripod", lens: "24mm Wide Anamorphic f/2.8", lighting: "Golden Hour Warm Backlight 3500K", vo: "เมื่อพายุแห่งกรรมพัดผ่านไป ความเงียบสงบที่แท้จริงจึงหวนคืนสู่ผืนดิน", sfx: "เสียงนกร้องยามเช้า ลมพัดเบาๆ" },
+      { prompt: "ภาพค่อยๆ เฟดเข้าสู่ความมืด พร้อมบรรยากาศหมอกลอยช้าๆ ทิ้งท้ายด้วยความรู้สึกสงบและได้แง่คิด", shotSize: "Extreme Wide Establishing Shot (EWS)", movement: "Slow Pedestal Crane Up", lens: "50mm Standard Prime f/1.4", lighting: "Soft Overcast Dusk / Blue Hour Diffused", vo: "ไม่มีใครหนีผลของการกระทำพ้น มีเพียงการยอมรับและอโหสิกรรมเท่านั้นที่ปลดปล่อยทุกดวงจิต", sfx: "เสียง Ambient ทุ้มต่ำค่อยๆ จางหาย" }
+    ];
+
+    const ASPECT_RATIOS = ["9:16", "16:9", "1:1", "4:5", "2.39:1"];
+    const LANGUAGES = ["Thai (ไทย)", "Thai + English Mix", "English", "Isan / Northern Dialect"];
+    const SCENE_DURATIONS = [5, 8, 10];
+
+    function formatTimecode(seconds) {
+      const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+      const s = (seconds % 60).toString().padStart(2, "0");
+      return `${m}:${s}`;
+    }
+
+    function createInitialState() {
+      const defaultChars = [
+        {
+          id: "char01",
+          name: "ดาว - เด็กสาวอายุ 22 ปี",
+          physicalDNA: "22yo Thai woman, pale warm skin, long straight black hair to mid-back, large dark expressive eyes, slender build 162cm, melancholic yet determined facial expression",
+          clothingDNA: "cream-white rolled-sleeve cotton t-shirt, faded blue jeans, mud-stained white sneakers, brown canvas crossbody bag, small Buddhist amulet necklace",
+          sheetTemplate: "turnaround_4view",
+          identityPhrase: "DAO (22yo Thai woman, long straight black hair, cream-white long-sleeve tee, faded jeans, brown canvas bag)"
+        },
+        {
+          id: "char02",
+          name: "ยายคำ - วิญญาณหมอผี อายุ 70 ปี",
+          physicalDNA: "70yo elderly Thai woman, deep wrinkled dark brown skin, short curly grey-white hair, one cloudy blind eye, slightly hunched posture, 150cm, holding wooden staff",
+          clothingDNA: "traditional black woven sinh skirt, black collarless camisole (เสื้อคอกระเช้า), pha khao ma cloth over shoulder, sacred amulets around neck, barefoot",
+          sheetTemplate: "turnaround_4view",
+          identityPhrase: "YAI KHAM (70yo elderly Thai shaman woman, wrinkled skin, short white curly hair, one cloudy eye, black traditional sinh + amulets)"
+        }
+      ];
+
+      const initialScenes = SCENE_BEATS.map((title, idx) => {
+        const def = DEFAULT_SCENE_PROMPTS[idx] || {};
+        const includeChar2 = [2, 11, 13, 14, 15].includes(idx);
+        return {
+          id: `scene-${idx}`,
+          title: title,
+          start: idx * 8,
+          end: (idx + 1) * 8,
+          prompt: def.prompt || "ต่อเนื่องบรรยากาศเดิม รักษาอัตลักษณ์ตัวละครและโทนแสง",
+          shotSize: def.shotSize || "Medium Shot (MS)",
+          movement: def.movement || "Slow Dolly Push-In",
+          lens: def.lens || "35mm Prime Cinema f/2.0",
+          lighting: def.lighting || "Low-Key Chiaroscuro (High Contrast 8:1)",
+          voiceover: def.vo || "",
+          sfx: def.sfx || "",
+          activeCharIds: includeChar2 ? ["char01", "char02"] : ["char01"]
+        };
+      });
+
+      return {
+        topic: "เรื่องเล่าหมู่บ้านร้างที่ทุกคนหายไปในคืนวันพระใหญ่ เด็กสาวคนหนึ่งกลับมาเพื่อตามหาแม่ที่หายไป และพบว่าหมู่บ้านถูกสาปจากกรรมที่ชาวบ้านเคยทำไว้กับหญิงหมอผี",
+        totalDuration: 144,
+        sceneDuration: 8,
+        aspectRatio: "9:16",
+        masterStyle: "Documentary Horror (สารคดีสยองขวัญไทย)",
+        outputMode: "VEO_JSON", // "VEO_JSON" | "TEXT" | "CHAR_SHEETS"
+        characters: defaultChars,
+        visualLock: {
+          style: "Documentary Horror, photorealistic, ultra-detailed skin texture, natural practical lighting, 8K, shot on ARRI Alexa 65, subtle 35mm film grain",
+          camera: "Handheld + Tripod mix, 35mm anamorphic for medium shots, 85mm for close-ups, shallow depth of field f/2.8",
+          atmosphere: "Abandoned traditional Thai wooden village at dusk, low ground mist, high humidity, swaying banana leaves, eerie stillness",
+          colorPalette: "Cold desaturated teal & amber, natural skin tones, crushed shadows, 3200K warm candle highlights vs 6500K cool moonlight",
+          negativePrompt: "cartoon, anime, 3d render, plastic skin, morphing face, outfit change, extra fingers, modern buildings, bright neon colors"
+        },
+        audioLock: {
+          voiceoverTone: "เสียงผู้หญิงไทยวัย 30 นุ่มลึก ช้าๆ มีน้ำหนัก เศร้าแต่ทรงพลัง จังหวะเว้นวรรคชวนให้คิดตาม",
+          language: "Thai (ไทย)",
+          bgm: "Low-frequency ambient drone + พิณอีสานโหยหวนแผ่วเบา + cold synth pad, BPM 60, no drums",
+          ambientSfx: "เสียงจิ้งหรีดกลางคืน, ลมพัดใบไผ่, เสียงไม้เก่าลั่น"
+        },
+        scenes: initialScenes
+      };
+    }
+
+    // ============================================================================
+    // 3. MAIN APPLICATION COMPONENT
+    // ============================================================================
+    function App() {
+      const [state, setState] = useState(() => {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed && parsed.scenes && parsed.characters) return parsed;
+          }
+        } catch (err) {
+          console.warn("Failed to load state from localStorage:", err);
+        }
+        return createInitialState();
+      });
+
+      const [openSceneId, setOpenSceneId] = useState("scene-0");
+      const [copiedGlobal, setCopiedGlobal] = useState(false);
+      const [copiedSceneId, setCopiedSceneId] = useState(null);
+      const [copiedCharId, setCopiedCharId] = useState(null);
+      const fileInputRef = useRef(null);
+
+      useEffect(() => {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (err) {
+          console.warn("Auto-save failed:", err);
+        }
+      }, [state]);
+
+      useEffect(() => {
+        const targetCount = Math.max(4, Math.min(40, Math.round(state.totalDuration / state.sceneDuration)));
+        setState((prev) => {
+          let nextScenes = [...prev.scenes];
+          if (nextScenes.length < targetCount) {
+            for (let i = nextScenes.length; i < targetCount; i++) {
+              const def = DEFAULT_SCENE_PROMPTS[i] || {};
+              nextScenes.push({
+                id: `scene-${i}-${Date.now()}`,
+                title: i < SCENE_BEATS.length ? SCENE_BEATS[i] : `SCENE ${String(i + 1).padStart(2, "0")} - ดำเนินเรื่องต่อเนื่อง`,
+                start: i * prev.sceneDuration,
+                end: (i + 1) * prev.sceneDuration,
+                prompt: def.prompt || "ดำเนินเรื่องต่อเนื่องในบรรยากาศเดิม รักษาความต่อเนื่องของตัวละครและแสง",
+                shotSize: def.shotSize || "Medium Shot (MS)",
+                movement: def.movement || "Slow Dolly Push-In",
+                lens: def.lens || "35mm Prime Cinema f/2.0",
+                lighting: def.lighting || "Low-Key Chiaroscuro (High Contrast 8:1)",
+                voiceover: def.vo || "",
+                sfx: def.sfx || "",
+                activeCharIds: prev.characters.length > 0 ? [prev.characters[0].id] : []
+              });
+            }
+          } else if (nextScenes.length > targetCount) {
+            nextScenes = nextScenes.slice(0, targetCount);
+          }
+
+          nextScenes = nextScenes.map((sc, idx) => ({
+            ...sc,
+            start: idx * prev.sceneDuration,
+            end: (idx + 1) * prev.sceneDuration
+          }));
+
+          return { ...prev, scenes: nextScenes };
+        });
+      }, [state.totalDuration, state.sceneDuration]);
+
+      const updateField = (key, value) => setState((prev) => ({ ...prev, [key]: value }));
+      const updateVisual = (key, value) => setState((prev) => ({ ...prev, visualLock: { ...prev.visualLock, [key]: value } }));
+      const updateAudio = (key, value) => setState((prev) => ({ ...prev, audioLock: { ...prev.audioLock, [key]: value } }));
+
+      const handleSelectMasterStyle = (newStyle) => {
+        setState((prev) => {
+          const preset = STYLE_DNA_PRESETS[newStyle];
+          if (preset) {
+            return {
+              ...prev,
+              masterStyle: newStyle,
+              visualLock: {
+                ...prev.visualLock,
+                style: preset.style,
+                atmosphere: preset.atmosphere,
+                colorPalette: preset.colorPalette
+              }
+            };
+          }
+          return { ...prev, masterStyle: newStyle };
+        });
+      };
+
+      const updateCharacter = (id, key, value) => {
+        setState((prev) => ({
+          ...prev,
+          characters: prev.characters.map((ch) => (ch.id === id ? { ...ch, [key]: value } : ch))
+        }));
+      };
+
+      const addCharacter = () => {
+        const nextNum = state.characters.length + 1;
+        const newId = `char-${Date.now()}`;
+        setState((prev) => ({
+          ...prev,
+          characters: [
+            ...prev.characters,
+            {
+              id: newId,
+              name: `ตัวละคร ${String(nextNum).padStart(2, "0")}`,
+              physicalDNA: "Specify age, ethnicity, skin texture, hair style, facial structure, height/build",
+              clothingDNA: "Specify exact top, bottom, footwear, accessories, and fabric condition",
+              sheetTemplate: "turnaround_4view",
+              identityPhrase: `CHAR_${String(nextNum).padStart(2, "0")} (consistent facial structure and exact outfit)`
+            }
+          ]
+        }));
+      };
+
+      const removeCharacter = (id) => {
+        if (state.characters.length <= 1) return;
+        setState((prev) => ({
+          ...prev,
+          characters: prev.characters.filter((ch) => ch.id !== id),
+          scenes: prev.scenes.map((sc) => ({
+            ...sc,
+            activeCharIds: (sc.activeCharIds || []).filter((cid) => cid !== id)
+          }))
+        }));
+      };
+
+      const updateScene = (id, key, value) => {
+        setState((prev) => ({
+          ...prev,
+          scenes: prev.scenes.map((sc) => (sc.id === id ? { ...sc, [key]: value } : sc))
+        }));
+      };
+
+      const toggleSceneCharacter = (sceneId, charId) => {
+        setState((prev) => ({
+          ...prev,
+          scenes: prev.scenes.map((sc) => {
+            if (sc.id !== sceneId) return sc;
+            const current = sc.activeCharIds || [];
+            const exists = current.includes(charId);
+            const nextIds = exists ? current.filter((id) => id !== charId) : [...current, charId];
+            return { ...sc, activeCharIds: nextIds };
+          })
+        }));
+      };
+
+      // ============================================================================
+      // 4. CHARACTER SHEET PROMPT GENERATOR (PRE-PRODUCTION REFERENCE IMAGE)
+      // ============================================================================
+      const buildCharacterSheetPrompt = (ch, idx) => {
+        const slot = `CHAR_${String(idx + 1).padStart(2, "0")}`;
+        const tpl = ch.sheetTemplate || "turnaround_4view";
+        let layoutSpec = "Split-screen character reference turnaround sheet: (Left) Full-body front view, (Center-Left) Full-body 3/4 view, (Center-Right) Full-body side profile, (Right) High-detail close-up portrait of face.";
+        if (tpl === "expression_grid") {
+          layoutSpec = "4-panel character facial expression & lighting reference sheet: Neutral determined, Fearful/Startled, Melancholic/Tearful, and Side-lit Chiaroscuro profile. Exact same facial bone structure across all panels.";
+        } else if (tpl === "costume_prop") {
+          layoutSpec = "Detailed costume & prop production reference sheet: Full-body standing pose in A-pose, plus close-up callouts of fabric weave, footwear, bag, and key accessories.";
+        }
+
+        return [
+          `[CHARACTER REFERENCE SHEET — ${slot}: ${ch.name}]`,
+          `LAYOUT: ${layoutSpec}`,
+          `SUBJECT PHYSICAL DNA: ${ch.physicalDNA || "-"}`,
+          `WARDROBE & PROPS DNA: ${ch.clothingDNA || "-"}`,
+          `LIGHTING & STUDIO SETUP: Neutral 5500K studio softbox lighting for clear texture fidelity, clean dark grey matte background (#18181b), no harsh shadows obscuring facial features.`,
+          `RENDER QUALITY: ${state.visualLock.style}, 8K photorealistic character design sheet, sharp focus, zero facial distortion, aspect ratio 16:9`
+        ].join("\n");
+      };
+
+      // ============================================================================
+      // 5. VEO 3.1 SCENE PROMPT & STRUCTURED JSON COMPILER
+      // ============================================================================
+      const buildSingleScenePrompt = (scene, idx) => {
+        const activeChars = state.characters.filter((ch) => (scene.activeCharIds || []).includes(ch.id));
+        const charDescriptions = activeChars.length > 0
+          ? activeChars.map((ch) => `${ch.identityPhrase} [Physical: ${ch.physicalDNA} | Outfit: ${ch.clothingDNA}]`).join(" ; ")
+          : "No human characters in frame (environment / object focus only)";
+
+        return [
+          `[SCENE ${String(idx + 1).padStart(2, "0")} | ${formatTimecode(scene.start)}-${formatTimecode(scene.end)} (${state.sceneDuration}s) | ${scene.title}]`,
+          `CHARACTER LOCK: ${charDescriptions}`,
+          `ACTION & STAGING: ${scene.prompt}`,
+          `VEO 3.1 CAMERA: ${scene.shotSize || "Medium Shot (MS)"} | Movement: ${scene.movement || "Slow Dolly Push-In"} | Lens: ${scene.lens || "35mm Prime Cinema f/2.0"}`,
+          `VEO 3.1 LIGHTING & COLOR: ${scene.lighting || "Low-Key Chiaroscuro"} | Palette: ${state.visualLock.colorPalette} | Atmosphere: ${state.visualLock.atmosphere}`,
+          `AUDIO / VO: ${scene.voiceover ? `VO (${state.audioLock.language}): "${scene.voiceover}"` : "Ambient Only"} | SFX: ${scene.sfx || state.audioLock.ambientSfx}`,
+          `ASPECT RATIO: ${state.aspectRatio} | NEGATIVE: ${state.visualLock.negativePrompt}`
+        ].join("\n");
+      };
+
+      const compiledOutput = useMemo(() => {
+        if (state.outputMode === "CHAR_SHEETS") {
+          return [
+            `================================================================================`,
+            `PRE-PRODUCTION CHARACTER REFERENCE SHEETS (GENERATE IMAGES BEFORE VIDEO)`,
+            `================================================================================`,
+            `คำแนะนำ: คัดลอก Prompt ด้านล่างไปเจนภาพนิ่ง (ด้วย Flux Dev / Midjourney / Imagen 3) เพื่อใช้เป็นภาพ Reference ตั้งต้นสำหรับล็อกหน้าตัวละครใน Veo 3.1 / Kling / Runway`,
+            ``,
+            state.characters.map((ch, idx) => buildCharacterSheetPrompt(ch, idx)).join("\n\n--------------------------------------------------------------------------------\n\n"),
+            `================================================================================`
+          ].join("\n");
+        }
+
+        if (state.outputMode === "VEO_JSON") {
+          const veoJsonPayload = {
+            schema_version: "4.0-veo-3.1-production",
+            engine_target: "Google Veo 3.1 / Multi-Node Cinematic Pipeline",
+            project_metadata: {
+              topic_premise: state.topic,
+              master_genre_style: state.masterStyle,
+              aspect_ratio: state.aspectRatio,
+              total_duration_sec: state.totalDuration,
+              shot_duration_sec: state.sceneDuration,
+              total_shots: state.scenes.length
+            },
+            character_consistency_registry: state.characters.map((ch, idx) => ({
+              character_id: ch.id,
+              slot_tag: `CHAR_${String(idx + 1).padStart(2, "0")}`,
+              display_name: ch.name,
+              identity_lock_token: ch.identityPhrase,
+              physical_attributes_dna: ch.physicalDNA,
+              wardrobe_dna: ch.clothingDNA,
+              character_sheet_generation_prompt: buildCharacterSheetPrompt(ch, idx)
+            })),
+            global_cinematography_locks: {
+              sensor_and_style_dna: state.visualLock.style,
+              base_camera_rig: state.visualLock.camera,
+              environmental_atmosphere: state.visualLock.atmosphere,
+              color_science_lut: state.visualLock.colorPalette,
+              pre_flight_negative_constraints: state.visualLock.negativePrompt
+            },
+            global_audio_locks: {
+              voiceover_profile: state.audioLock.voiceoverTone,
+              language: state.audioLock.language,
+              master_bgm_score: state.audioLock.bgm,
+              base_ambient_sfx: state.audioLock.ambientSfx
+            },
+            shot_execution_queue: state.scenes.map((sc, idx) => {
+              const activeChars = state.characters.filter((c) => (sc.activeCharIds || []).includes(c.id));
+              return {
+                shot_index: idx + 1,
+                shot_id: sc.id,
+                narrative_beat: sc.title,
+                timing_metrics: {
+                  start_sec: sc.start,
+                  end_sec: sc.end,
+                  duration_sec: state.sceneDuration,
+                  timecode: `${formatTimecode(sc.start)}-${formatTimecode(sc.end)}`
+                },
+                character_consistency_lock: {
+                  active_subject_count: activeChars.length,
+                  subject_ids: activeChars.map((c) => c.id),
+                  subject_dna_injection: activeChars.map((c) => ({
+                    name: c.name,
+                    identity_token: c.identityPhrase,
+                    physical_dna: c.physicalDNA,
+                    wardrobe_dna: c.clothingDNA
+                  }))
+                },
+                veo_3_1_camera_metrics: {
+                  shot_size: sc.shotSize || "Medium Shot (MS)",
+                  camera_movement: sc.movement || "Slow Dolly Push-In",
+                  lens_and_aperture: sc.lens || "35mm Prime Cinema f/2.0",
+                  aspect_ratio: state.aspectRatio
+                },
+                veo_3_1_lighting_and_color: {
+                  lighting_setup_and_transition: sc.lighting || "Low-Key Chiaroscuro (High Contrast 8:1)",
+                  color_science: state.visualLock.colorPalette,
+                  atmospheric_volumetrics: state.visualLock.atmosphere
+                },
+                staging_and_motion_action: sc.prompt,
+                audio_design_sync: {
+                  voiceover_dialogue: sc.voiceover || "",
+                  voiceover_tone: state.audioLock.voiceoverTone,
+                  foley_and_sfx: sc.sfx || state.audioLock.ambientSfx,
+                  bgm_cue: state.audioLock.bgm
+                },
+                compiled_veo_3_1_prompt: buildSingleScenePrompt(sc, idx)
+              };
+            })
+          };
+          return JSON.stringify(veoJsonPayload, null, 2);
+        }
+
+        // TEXT MODE
+        const charBlock = state.characters.map((ch, idx) => [
+          `[CHARACTER ${String(idx + 1).padStart(2, "0")}: ${ch.name}]`,
+          `- Identity Lock Token: ${ch.identityPhrase}`,
+          `- Physical DNA: ${ch.physicalDNA || "-"}`,
+          `- Wardrobe DNA: ${ch.clothingDNA || "-"}`,
+          `- Character Sheet Prompt:\n${buildCharacterSheetPrompt(ch, idx)}`
+        ].join("\n")).join("\n\n");
+
+        const scenesBlock = state.scenes.map((sc, idx) => buildSingleScenePrompt(sc, idx)).join("\n\n--------------------------------------------------------------------------------\n\n");
+
+        return [
+          `================================================================================`,
+          `AI LONG VIDEO DIRECTOR v4.0 — VEO 3.1 MASTER PRODUCTION SCRIPT`,
+          `================================================================================`,
+          `TOPIC: ${state.topic}`,
+          `DURATION: ${state.totalDuration}s (${state.scenes.length} Shots x ${state.sceneDuration}s) | ASPECT RATIO: ${state.aspectRatio}`,
+          `MASTER GENRE / STYLE: ${state.masterStyle}`,
+          ``,
+          `--------------------------------------------------------------------------------`,
+          `[01] GLOBAL CHARACTER REGISTRY & REFERENCE SHEET PROMPTS`,
+          `--------------------------------------------------------------------------------`,
+          charBlock,
+          ``,
+          `--------------------------------------------------------------------------------`,
+          `[02] GLOBAL VISUAL & AUDIO DNA`,
+          `--------------------------------------------------------------------------------`,
+          `Style DNA: ${state.visualLock.style}`,
+          `Camera DNA: ${state.visualLock.camera}`,
+          `Atmosphere: ${state.visualLock.atmosphere}`,
+          `Color Science: ${state.visualLock.colorPalette}`,
+          `Negative Constraints: ${state.visualLock.negativePrompt}`,
+          `Voiceover Tone (${state.audioLock.language}): ${state.audioLock.voiceoverTone}`,
+          `Master BGM: ${state.audioLock.bgm}`,
+          `Ambient SFX: ${state.audioLock.ambientSfx}`,
+          ``,
+          `--------------------------------------------------------------------------------`,
+          `[03] VEO 3.1 SHOT-BY-SHOT EXECUTION SCRIPT (${state.scenes.length} SHOTS)`,
+          `--------------------------------------------------------------------------------`,
+          scenesBlock,
+          `================================================================================`
+        ].join("\n");
+      }, [state]);
+
+      // ============================================================================
+      // 6. CLIPBOARD & FILE ACTIONS
+      // ============================================================================
+      const copyText = async (text, onSuccess) => {
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const temp = document.createElement("textarea");
+            temp.value = text;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand("copy");
+            document.body.removeChild(temp);
+          }
+          onSuccess();
+        } catch (err) {
+          alert("ไม่สามารถคัดลอกได้ กรุณาคัดลอกจากกล่องข้อความโดยตรง");
+        }
+      };
+
+      const handleCopyGlobal = () => {
+        copyText(compiledOutput, () => {
+          setCopiedGlobal(true);
+          setTimeout(() => setCopiedGlobal(false), 2000);
+        });
+      };
+
+      const handleCopySingleScene = (e, scene, idx) => {
+        e.stopPropagation();
+        const promptText = buildSingleScenePrompt(scene, idx);
+        copyText(promptText, () => {
+          setCopiedSceneId(scene.id);
+          setTimeout(() => setCopiedSceneId(null), 1800);
+        });
+      };
+
+      const handleCopyCharSheet = (ch, idx) => {
+        const promptText = buildCharacterSheetPrompt(ch, idx);
+        copyText(promptText, () => {
+          setCopiedCharId(ch.id);
+          setTimeout(() => setCopiedCharId(null), 1800);
+        });
+      };
+
+      const handleDownloadOutput = () => {
+        const isJson = state.outputMode === "VEO_JSON";
+        const ext = isJson ? "json" : "txt";
+        const mime = isJson ? "application/json;charset=utf-8" : "text/plain;charset=utf-8";
+        const blob = new Blob([compiledOutput], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `veo31-director-${state.outputMode.toLowerCase()}-${state.totalDuration}s.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      };
+
+      const handleExportProjectJson = () => {
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `veo31-project-backup-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      };
+
+      const handleImportProjectJson = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const parsed = JSON.parse(ev.target.result);
+            if (parsed && Array.isArray(parsed.scenes) && Array.isArray(parsed.characters)) {
+              setState(parsed);
+            } else {
+              alert("ไฟล์ JSON ไม่ถูกต้องตามโครงสร้างโปรเจกต์");
+            }
+          } catch (err) {
+            alert("ไม่สามารถอ่านไฟล์ JSON ได้");
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = "";
+      };
+
+      const handleResetDefault = () => {
+        if (confirm("ต้องการรีเซ็ตข้อมูลทั้งหมดกลับเป็นค่าเริ่มต้นใช่หรือไม่?")) {
+          const fresh = createInitialState();
+          setState(fresh);
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      };
+
+      // ============================================================================
+      // 7. RENDER UI
+      // ============================================================================
+      return h("div", { className: "app-container" }, [
+        h("input", {
+          key: "file-input",
+          type: "file",
+          accept: ".json",
+          ref: fileInputRef,
+          style: { display: "none" },
+          onChange: handleImportProjectJson
+        }),
+
+        // TOP STICKY HEADER
+        h("header", { key: "header", className: "sticky-header" },
+          h("div", { className: "flex-between" }, [
+            h("div", { key: "brand", style: { display: "flex", alignItems: "center", gap: "0.85rem" } }, [
+              h("div", {
+                key: "icon",
+                style: {
+                  width: 44, height: 44, borderRadius: 12,
+                  background: "var(--accent-surface)", border: "1px solid rgba(59,130,246,0.35)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 0 24px var(--accent-glow)"
+                }
+              }, h("span", { className: "mono", style: { fontSize: 20, fontWeight: 700, color: "var(--accent)" } }, "🎬")),
+              h("div", { key: "titles" }, [
+                h("div", { key: "t1", className: "flex-row-wrap" }, [
+                  h("h1", { key: "h1", style: { fontSize: 18.5, fontWeight: 700, margin: 0 } }, "AI LONG VIDEO DIRECTOR"),
+                  h("span", { key: "b1", className: "badge badge-accent mono" }, "VEO 3.1 SPEC v4.0"),
+                  h("span", { key: "b2", className: "badge badge-purple mono" }, "CHAR SHEET STUDIO")
+                ]),
+                h("p", { key: "p1", style: { fontSize: 12, color: "var(--text-muted)", margin: "0.18rem 0 0" } },
+                  `พารามิเตอร์กล้องและแสง Veo 3.1 รายฉาก • สร้าง Prompt เจนภาพ Character Sheet ตั้งต้น • ${state.scenes.length} ช็อต (${state.totalDuration}s)`
+                )
+              ])
+            ]),
+
+            h("div", { key: "actions", className: "flex-row-wrap" }, [
+              h("button", { key: "import", className: "btn btn-secondary", onClick: () => fileInputRef.current && fileInputRef.current.click() }, "📂 Load .JSON"),
+              h("button", { key: "export", className: "btn btn-secondary", onClick: handleExportProjectJson }, "💾 Save Project"),
+              h("button", { key: "reset", className: "btn btn-secondary", onClick: handleResetDefault }, "↺ Reset"),
+              h("button", { key: "copy-main", className: "btn btn-primary", onClick: handleCopyGlobal },
+                copiedGlobal ? "✓ คัดลอกสำเร็จ" : `⎙ COPY ${state.outputMode}`
+              )
+            ])
+          ])
+        ),
+
+        // MAIN 2-COLUMN GRID
+        h("div", { key: "main-grid", className: "main-grid" }, [
+
+          // ========================================================================
+          // LEFT COLUMN: PROJECT, CHARACTER SHEET STUDIO, VISUAL & AUDIO LOCKS
+          // ========================================================================
+          h("div", { key: "col-left", className: "col-left flex-col-gap" }, [
+
+            // SECTION 01: PROJECT & MASTER GENRE
+            h("section", { key: "sec-01", className: "card" }, [
+              h("div", { key: "hd", className: "card-header" }, [
+                h("div", { key: "l", className: "flex-row-wrap" }, [
+                  h("span", { key: "n", className: "badge-step" }, "01"),
+                  h("h2", { key: "t", style: { fontSize: 13, fontWeight: 600, letterSpacing: "0.06em", margin: 0 } }, "PROJECT & MASTER GENRE")
+                ]),
+                h("span", { key: "r", className: "mono", style: { fontSize: 11, color: "var(--accent-2)" } }, `${state.scenes.length} SHOTS`)
+              ]),
+              h("div", { key: "bd", className: "card-body" }, [
+                h("div", { key: "topic" }, [
+                  h("label", { className: "label-title" }, "TOPIC / STORY PREMISE (เรื่องย่อ / แก่นเรื่อง)"),
+                  h("textarea", {
+                    className: "textarea-field",
+                    rows: 3,
+                    value: state.topic,
+                    onChange: (e) => updateField("topic", e.target.value),
+                    placeholder: "ระบุเรื่องย่อหรือพล็อตหลัก..."
+                  })
+                ]),
+
+                // Expanded Master Genre Selector with Optgroups
+                h("div", { key: "st" }, [
+                  h("label", { className: "label-title", style: { color: "var(--accent-2)" } },
+                    "MASTER GENRE / STYLE (เลือกแนวหลัก — ซิงค์ Visual DNA อัตโนมัติสำหรับแนวยอดนิยม)"
+                  ),
+                  h("select", {
+                    className: "select-field",
+                    value: state.masterStyle,
+                    onChange: (e) => handleSelectMasterStyle(e.target.value)
+                  },
+                    MASTER_GENRE_GROUPS.map((grp) =>
+                      h("optgroup", { key: grp.category, label: grp.category },
+                        grp.items.map((item) => h("option", { key: item, value: item }, item))
+                      )
+                    )
+                  )
+                ]),
+
+                // Total Duration Slider
+                h("div", {
+                  key: "dur-box",
+                  style: { background: "#0e0e11", border: "1px solid var(--border)", borderRadius: 12, padding: "0.8rem" }
+                }, [
+                  h("div", { key: "top", className: "flex-between", style: { marginBottom: "0.45rem" } }, [
+                    h("span", { className: "label-title", style: { margin: 0 } }, "TOTAL DURATION (ความยาวรวม)"),
+                    h("span", { className: "mono", style: { fontSize: 12.5, fontWeight: 700, color: "var(--accent-2)" } },
+                      `${state.totalDuration}s (${formatTimecode(state.totalDuration)}) • ${state.scenes.length} ช็อต`
+                    )
+                  ]),
+                  h("input", {
+                    key: "rng",
+                    type: "range",
+                    min: 24,
+                    max: 300,
+                    step: state.sceneDuration,
+                    value: state.totalDuration,
+                    onChange: (e) => updateField("totalDuration", parseInt(e.target.value, 10))
+                  }),
+                  h("div", { key: "bot", className: "flex-between mono", style: { fontSize: 10, color: "var(--text-dim)", marginTop: "0.3rem" } }, [
+                    h("span", { key: "s1" }, "24s"),
+                    h("span", { key: "s2" }, "144s (18 Shots x 8s Veo 3.1)"),
+                    h("span", { key: "s3" }, "300s")
+                  ])
+                ]),
+
+                // Scene Duration & Aspect Ratio
+                h("div", { key: "grid-dur-ar", className: "grid-2" }, [
+                  h("div", { key: "sc-dur" }, [
+                    h("label", { className: "label-title" }, "SHOT DURATION (Veo 3.1 แนะนำ 8s)"),
+                    h("div", { className: "grid-3" },
+                      SCENE_DURATIONS.map((sec) =>
+                        h("button", {
+                          key: sec,
+                          type: "button",
+                          className: `chip-toggle mono ${state.sceneDuration === sec ? "active" : ""}`,
+                          style: { justifyContent: "center", padding: "0.42rem" },
+                          onClick: () => updateField("sceneDuration", sec)
+                        }, `${sec}s`)
+                      )
+                    )
+                  ]),
+                  h("div", { key: "ar" }, [
+                    h("label", { className: "label-title" }, "ASPECT RATIO"),
+                    h("select", {
+                      className: "select-field",
+                      value: state.aspectRatio,
+                      onChange: (e) => updateField("aspectRatio", e.target.value)
+                    }, ASPECT_RATIOS.map((ar) => h("option", { key: ar, value: ar }, ar)))
+                  ])
+                ])
+              ])
+            ]),
+
+            // SECTION 02: CHARACTER DNA & CHARACTER SHEET GENERATOR
+            h("section", { key: "sec-02", className: "card-accent" }, [
+              h("div", { key: "hd", className: "card-header" }, [
+                h("div", { key: "l", className: "flex-row-wrap" }, [
+                  h("span", { key: "n", className: "badge-step", style: { background: "var(--accent)", color: "#fff" } }, "02"),
+                  h("div", { key: "txt" }, [
+                    h("h2", { style: { fontSize: 13, fontWeight: 600, letterSpacing: "0.06em", margin: 0 } }, "CHARACTER DNA & REFERENCE SHEET STUDIO"),
+                    h("span", { style: { fontSize: 10.5, color: "var(--text-muted)" } }, "สร้าง Prompt เจนภาพตัวละครตั้งต้น (Character Sheet) ก่อนทำวิดีโอ")
+                  ])
+                ]),
+                h("button", { key: "add", className: "btn btn-primary", style: { padding: "0.3rem 0.75rem", fontSize: 11 }, onClick: addCharacter }, "+ เพิ่มตัวละคร")
+              ]),
+              h("div", { key: "bd", className: "card-body", style: { maxHeight: 920, overflowY: "auto" } },
+                state.characters.map((ch, idx) => {
+                  const isCharCopied = copiedCharId === ch.id;
+                  const sheetPrompt = buildCharacterSheetPrompt(ch, idx);
+
+                  return h("div", {
+                    key: ch.id,
+                    style: {
+                      background: "rgba(14,14,18,0.9)", border: "1px solid var(--border)",
+                      borderRadius: 14, padding: "0.9rem", display: "flex", flexDirection: "column", gap: "0.65rem"
+                    }
+                  }, [
+                    h("div", { key: "top", className: "flex-between" }, [
+                      h("div", { className: "flex-row-wrap" }, [
+                        h("span", { className: "badge badge-accent mono" }, `CHAR ${String(idx + 1).padStart(2, "0")}`),
+                        h("span", { style: { fontSize: 12, fontWeight: 600 } }, ch.name)
+                      ]),
+                      h("div", { className: "flex-row-wrap" }, [
+                        h("button", {
+                          type: "button",
+                          className: "btn btn-purple mono",
+                          style: { padding: "0.24rem 0.65rem", fontSize: 10.5 },
+                          onClick: () => handleCopyCharSheet(ch, idx)
+                        }, isCharCopied ? "✓ คัดลอก Character Sheet แล้ว" : "🖼️ Copy Character Sheet Prompt"),
+                        state.characters.length > 1 && h("button", {
+                          className: "btn btn-danger-ghost",
+                          onClick: () => removeCharacter(ch.id)
+                        }, "✕")
+                      ])
+                    ]),
+
+                    h("div", { key: "name" }, [
+                      h("label", { className: "label-title" }, "NAME & ROLE (ชื่อและบทบาท)"),
+                      h("input", {
+                        className: "input-field",
+                        value: ch.name,
+                        onChange: (e) => updateCharacter(ch.id, "name", e.target.value)
+                      })
+                    ]),
+
+                    h("div", { key: "id-phrase" }, [
+                      h("label", { className: "label-title", style: { color: "var(--accent-2)" } }, "SHORT IDENTITY TOKEN (แนบเข้ากับทุกฉากที่ตัวละครนี้ปรากฏ)"),
+                      h("input", {
+                        className: "input-field mono",
+                        style: { borderColor: "rgba(59,130,246,0.35)", background: "rgba(59,130,246,0.06)" },
+                        value: ch.identityPhrase,
+                        onChange: (e) => updateCharacter(ch.id, "identityPhrase", e.target.value)
+                      })
+                    ]),
+
+                    h("div", { key: "phys" }, [
+                      h("label", { className: "label-title" }, "PHYSICAL DNA (ใบหน้า อายุ ผิว ทรงผม รูปร่าง)"),
+                      h("textarea", {
+                        className: "textarea-field",
+                        rows: 2,
+                        value: ch.physicalDNA,
+                        onChange: (e) => updateCharacter(ch.id, "physicalDNA", e.target.value)
+                      })
+                    ]),
+
+                    h("div", { key: "cloth" }, [
+                      h("label", { className: "label-title" }, "WARDROBE & PROPS DNA (เสื้อผ้าและเครื่องประดับประจำตัว)"),
+                      h("textarea", {
+                        className: "textarea-field",
+                        rows: 2,
+                        value: ch.clothingDNA,
+                        onChange: (e) => updateCharacter(ch.id, "clothingDNA", e.target.value)
+                      })
+                    ]),
+
+                    // Character Sheet Layout Selector & Live Preview
+                    h("div", { key: "sheet-cfg" }, [
+                      h("label", { className: "label-title", style: { color: "#d8b4fe" } }, "CHARACTER SHEET LAYOUT (รูปแบบภาพ Reference สำหรับนำไปเจนก่อนทำวิดีโอ)"),
+                      h("select", {
+                        className: "select-field",
+                        style: { borderColor: "rgba(168,85,247,0.35)" },
+                        value: ch.sheetTemplate || "turnaround_4view",
+                        onChange: (e) => updateCharacter(ch.id, "sheetTemplate", e.target.value)
+                      }, CHARACTER_SHEET_TEMPLATES.map((tpl) => h("option", { key: tpl.id, value: tpl.id }, tpl.label)))
+                    ]),
+
+                    h("div", { key: "sheet-prev", className: "char-sheet-preview mono" }, sheetPrompt)
+                  ]);
+                })
+              )
+            ]),
+
+            // SECTION 03: GLOBAL VISUAL & AUDIO LOCK
+            h("section", { key: "sec-03", className: "card" }, [
+              h("div", { key: "hd", className: "card-header" }, [
+                h("div", { className: "flex-row-wrap" }, [
+                  h("span", { className: "badge-step" }, "03"),
+                  h("h2", { style: { fontSize: 13, fontWeight: 600, letterSpacing: "0.06em", margin: 0 } }, "GLOBAL VISUAL & AUDIO DNA LOCK")
+                ])
+              ]),
+              h("div", { key: "bd", className: "card-body" }, [
+                h("div", { key: "v-style" }, [
+                  h("label", { className: "label-title" }, "SENSOR & STYLE DNA"),
+                  h("textarea", { className: "textarea-field", rows: 2, value: state.visualLock.style, onChange: (e) => updateVisual("style", e.target.value) })
+                ]),
+                h("div", { key: "v-atmo" }, [
+                  h("label", { className: "label-title" }, "ATMOSPHERE & VOLUMETRICS DNA"),
+                  h("textarea", { className: "textarea-field", rows: 2, value: state.visualLock.atmosphere, onChange: (e) => updateVisual("atmosphere", e.target.value) })
+                ]),
+                h("div", { key: "v-color" }, [
+                  h("label", { className: "label-title" }, "COLOR SCIENCE & KELVIN CONTRAST"),
+                  h("textarea", { className: "textarea-field", rows: 2, value: state.visualLock.colorPalette, onChange: (e) => updateVisual("colorPalette", e.target.value) })
+                ]),
+                h("div", { key: "v-neg" }, [
+                  h("label", { className: "label-title" }, "PRE-FLIGHT NEGATIVE CONSTRAINTS"),
+                  h("input", { className: "input-field", value: state.visualLock.negativePrompt, onChange: (e) => updateVisual("negativePrompt", e.target.value) })
+                ]),
+                h("hr", { key: "div", style: { borderTop: "1px solid var(--border)", margin: "0.2rem 0" } }),
+                h("div", { key: "a-grid", className: "grid-2" }, [
+                  h("div", { key: "lang" }, [
+                    h("label", { className: "label-title" }, "VOICEOVER LANGUAGE"),
+                    h("select", { className: "select-field", value: state.audioLock.language, onChange: (e) => updateAudio("language", e.target.value) },
+                      LANGUAGES.map((l) => h("option", { key: l, value: l }, l))
+                    )
+                  ]),
+                  h("div", { key: "bgm" }, [
+                    h("label", { className: "label-title" }, "MASTER BGM SCORE"),
+                    h("input", { className: "input-field", value: state.audioLock.bgm, onChange: (e) => updateAudio("bgm", e.target.value) })
+                  ])
+                ]),
+                h("div", { key: "a-vo" }, [
+                  h("label", { className: "label-title" }, "VOICEOVER TONE PROFILE"),
+                  h("input", { className: "input-field", value: state.audioLock.voiceoverTone, onChange: (e) => updateAudio("voiceoverTone", e.target.value) })
+                ])
+              ])
+            ])
+          ]),
+
+          // ========================================================================
+          // RIGHT COLUMN: VEO 3.1 SCENE BLUEPRINT & COMPILER OUTPUT
+          // ========================================================================
+          h("div", { key: "col-right", className: "col-right flex-col-gap" }, [
+
+            // SECTION 04: VEO 3.1 SCENE-BY-SCENE SPEC
+            h("section", { key: "sec-04", className: "card" }, [
+              h("div", { key: "hd", className: "card-header" }, [
+                h("div", { key: "l", className: "flex-row-wrap" }, [
+                  h("span", { key: "n", className: "badge-step" }, "04"),
+                  h("h2", { key: "t", style: { fontSize: 13, fontWeight: 600, letterSpacing: "0.06em", margin: 0 } }, "VEO 3.1 SHOT BLUEPRINT & CAMERA/LIGHTING METRICS"),
+                  h("span", { key: "b", className: "badge badge-accent mono" }, `${state.scenes.length} SHOTS`)
+                ]),
+                h("span", { key: "r", className: "mono", style: { fontSize: 11, color: "var(--text-muted)" } },
+                  "กำหนดกล้อง เลนส์ และแสง Veo 3.1 แยกรายช็อต"
+                )
+              ]),
+
+              h("div", { key: "bd", className: "card-body", style: { maxHeight: 740, overflowY: "auto", padding: "0.85rem" } },
+                state.scenes.map((sc, idx) => {
+                  const isOpen = openSceneId === sc.id;
+                  const isSceneCopied = copiedSceneId === sc.id;
+                  const activeCount = (sc.activeCharIds || []).length;
+
+                  return h("div", { key: sc.id, className: `scene-item ${isOpen ? "active" : ""}` }, [
+                    // Scene Accordion Header
+                    h("div", {
+                      key: "sc-hd",
+                      className: "scene-header",
+                      onClick: () => setOpenSceneId(isOpen ? null : sc.id)
+                    }, [
+                      h("div", { key: "left", style: { display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 0 } }, [
+                        h("span", {
+                          key: "idx",
+                          className: "mono",
+                          style: {
+                            fontSize: 11, fontWeight: 700, padding: "0.25rem 0.55rem", borderRadius: 8,
+                            background: isOpen ? "var(--accent)" : "rgba(255,255,255,0.06)",
+                            color: isOpen ? "#fff" : "var(--text-muted)"
+                          }
+                        }, String(idx + 1).padStart(2, "0")),
+                        h("div", { key: "info", style: { minWidth: 0 } }, [
+                          h("div", { key: "title", style: { fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, sc.title),
+                          h("div", { key: "meta", className: "mono", style: { fontSize: 10.5, color: "var(--text-dim)" } },
+                            `${formatTimecode(sc.start)}-${formatTimecode(sc.end)} (${state.sceneDuration}s) • ${sc.shotSize || "MS"} • ${sc.movement || "Push-In"} • ตัวละคร: ${activeCount}`
+                          )
+                        ])
+                      ]),
+
+                      h("div", { key: "right", className: "flex-row-wrap" }, [
+                        h("button", {
+                          key: "copy-sc",
+                          type: "button",
+                          className: "btn btn-secondary mono",
+                          style: {
+                            padding: "0.24rem 0.65rem", fontSize: 10.5,
+                            background: isSceneCopied ? "var(--success)" : undefined,
+                            color: isSceneCopied ? "#fff" : undefined
+                          },
+                          onClick: (e) => handleCopySingleScene(e, sc, idx)
+                        }, isSceneCopied ? "✓ Copied" : "⎙ Copy Shot"),
+                        h("span", { key: "arr", style: { fontSize: 14, transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" } }, "⌄")
+                      ])
+                    ]),
+
+                    // Scene Accordion Body
+                    isOpen && h("div", {
+                      key: "sc-bd",
+                      style: { padding: "0 1rem 1rem", display: "flex", flexDirection: "column", gap: "0.75rem", borderTop: "1px solid var(--border)" }
+                    }, [
+                      // Active Character Selector per Scene
+                      h("div", { key: "char-select", style: { paddingTop: "0.75rem" } }, [
+                        h("label", { className: "label-title", style: { color: "var(--accent-2)" } },
+                          "ACTIVE CHARACTERS IN SHOT (เลือกเฉพาะตัวละครที่เข้าฉากนี้)"
+                        ),
+                        h("div", { className: "flex-row-wrap" },
+                          state.characters.map((ch, cIdx) => {
+                            const isChecked = (sc.activeCharIds || []).includes(ch.id);
+                            return h("button", {
+                              key: ch.id,
+                              type: "button",
+                              className: `chip-toggle ${isChecked ? "active" : ""}`,
+                              onClick: () => toggleSceneCharacter(sc.id, ch.id)
+                            }, `${isChecked ? "✓" : "+"} CHAR 0${cIdx + 1}: ${ch.name.split(" - ")[0]}`);
+                          })
+                        )
+                      ]),
+
+                      h("div", { key: "st" }, [
+                        h("label", { className: "label-title" }, "NARRATIVE BEAT / SHOT TITLE"),
+                        h("input", { className: "input-field", value: sc.title, onChange: (e) => updateScene(sc.id, "title", e.target.value) })
+                      ]),
+
+                      // Dedicated Veo 3.1 Camera & Lighting Box
+                      h("div", { key: "veo-spec", className: "veo-box" }, [
+                        h("div", { key: "vh", className: "flex-between" }, [
+                          h("span", { className: "mono", style: { fontSize: 10.5, fontWeight: 600, color: "var(--accent-2)" } }, "🎥 VEO 3.1 CAMERA & LIGHTING PARAMETERS"),
+                          h("span", { className: "badge badge-amber mono" }, "VEO 3.1 ENGINE READY")
+                        ]),
+                        h("div", { key: "vg1", className: "grid-2" }, [
+                          h("div", { key: "sz" }, [
+                            h("label", { className: "label-title" }, "SHOT SIZE (ขนาดภาพ)"),
+                            h("select", {
+                              className: "select-field",
+                              value: sc.shotSize || VEO_SHOT_SIZES[3],
+                              onChange: (e) => updateScene(sc.id, "shotSize", e.target.value)
+                            }, VEO_SHOT_SIZES.map((s) => h("option", { key: s, value: s }, s)))
+                          ]),
+                          h("div", { key: "mv" }, [
+                            h("label", { className: "label-title" }, "CAMERA MOVEMENT (การเคลื่อนกล้อง)"),
+                            h("select", {
+                              className: "select-field",
+                              value: sc.movement || VEO_CAMERA_MOVEMENTS[1],
+                              onChange: (e) => updateScene(sc.id, "movement", e.target.value)
+                            }, VEO_CAMERA_MOVEMENTS.map((m) => h("option", { key: m, value: m }, m)))
+                          ])
+                        ]),
+                        h("div", { key: "vg2", className: "grid-2" }, [
+                          h("div", { key: "ln" }, [
+                            h("label", { className: "label-title" }, "LENS & DEPTH OF FIELD (ระยะเลนส์)"),
+                            h("select", {
+                              className: "select-field",
+                              value: sc.lens || VEO_LENS_SPECS[1],
+                              onChange: (e) => updateScene(sc.id, "lens", e.target.value)
+                            }, VEO_LENS_SPECS.map((l) => h("option", { key: l, value: l }, l)))
+                          ]),
+                          h("div", { key: "lt" }, [
+                            h("label", { className: "label-title" }, "LIGHTING TRANSITION & KELVIN (การจัดแสง)"),
+                            h("select", {
+                              className: "select-field",
+                              value: sc.lighting || VEO_LIGHTING_MODES[0],
+                              onChange: (e) => updateScene(sc.id, "lighting", e.target.value)
+                            }, VEO_LIGHTING_MODES.map((lt) => h("option", { key: lt, value: lt }, lt)))
+                          ])
+                        ])
+                      ]),
+
+                      h("div", { key: "sc-prompt" }, [
+                        h("label", { className: "label-title" }, "STAGING & MOTION ACTION PROMPT (การกระทำของตัวละครและรายละเอียดในช็อตนี้)"),
+                        h("textarea", {
+                          className: "textarea-field",
+                          rows: 3,
+                          value: sc.prompt,
+                          onChange: (e) => updateScene(sc.id, "prompt", e.target.value)
+                        })
+                      ]),
+
+                      h("div", { key: "row-vo-sfx", className: "grid-2" }, [
+                        h("div", { key: "vo" }, [
+                          h("label", { className: "label-title" }, "SHOT VOICEOVER / DIALOGUE (บทพูดฉากนี้)"),
+                          h("input", {
+                            className: "input-field",
+                            placeholder: "บทพูดหรือเสียงบรรยายในฉากนี้...",
+                            value: sc.voiceover || "",
+                            onChange: (e) => updateScene(sc.id, "voiceover", e.target.value)
+                          })
+                        ]),
+                        h("div", { key: "sfx" }, [
+                          h("label", { className: "label-title" }, "SHOT FOLEY & SFX (เสียงประกอบเฉพาะฉาก)"),
+                          h("input", {
+                            className: "input-field",
+                            placeholder: "เช่น เสียงประตูปิด, เสียงฝีเท้า...",
+                            value: sc.sfx || "",
+                            onChange: (e) => updateScene(sc.id, "sfx", e.target.value)
+                          })
+                        ])
+                      ])
+                    ])
+                  ]);
+                })
+              )
+            ]),
+
+            // SECTION 05: MASTER OUTPUT COMPILER (VEO 3.1 JSON / TEXT / CHAR SHEETS)
+            h("section", { key: "sec-05", className: "card-accent", style: { background: "#0b0b0e" } }, [
+              h("div", { key: "hd", className: "card-header" }, [
+                h("div", { key: "l", className: "flex-row-wrap" }, [
+                  h("span", { key: "n", className: "badge-step", style: { background: "var(--accent)", color: "#fff" } }, "05"),
+                  h("div", { key: "t" }, [
+                    h("h2", { style: { fontSize: 13, fontWeight: 600, letterSpacing: "0.06em", margin: 0 } }, "MASTER PRODUCTION COMPILER"),
+                    h("span", { className: "mono", style: { fontSize: 10.5, color: "var(--text-muted)" } },
+                      `${compiledOutput.length.toLocaleString()} chars • รองรับ Veo 3.1 JSON Schema, Character Sheets และ Text Script`
+                    )
+                  ])
+                ]),
+
+                // 3-Mode Switcher + Copy/Download
+                h("div", { key: "r", className: "flex-row-wrap" }, [
+                  h("button", {
+                    key: "mode-veo",
+                    type: "button",
+                    className: `chip-toggle mono ${state.outputMode === "VEO_JSON" ? "active" : ""}`,
+                    onClick: () => updateField("outputMode", "VEO_JSON")
+                  }, "{ } VEO 3.1 JSON"),
+                  h("button", {
+                    key: "mode-sheets",
+                    type: "button",
+                    className: `chip-toggle mono ${state.outputMode === "CHAR_SHEETS" ? "active" : ""}`,
+                    onClick: () => updateField("outputMode", "CHAR_SHEETS")
+                  }, "🖼️ CHAR SHEETS"),
+                  h("button", {
+                    key: "mode-txt",
+                    type: "button",
+                    className: `chip-toggle mono ${state.outputMode === "TEXT" ? "active" : ""}`,
+                    onClick: () => updateField("outputMode", "TEXT")
+                  }, "📄 TEXT SCRIPT"),
+                  h("button", {
+                    key: "btn-copy",
+                    type: "button",
+                    className: "btn btn-primary",
+                    onClick: handleCopyGlobal
+                  }, copiedGlobal ? "✓ คัดลอกแล้ว" : "⎙ COPY OUTPUT"),
+                  h("button", {
+                    key: "btn-dl",
+                    type: "button",
+                    className: "btn btn-secondary mono",
+                    onClick: handleDownloadOutput
+                  }, `⇩ .${state.outputMode === "VEO_JSON" ? "JSON" : "TXT"}`)
+                ])
+              ]),
+
+              h("div", { key: "bd", style: { padding: "1rem" } }, [
+                h("textarea", {
+                  readOnly: true,
+                  value: compiledOutput,
+                  spellCheck: false,
+                  className: "textarea-field mono",
+                  style: {
+                    height: 490,
+                    background: "#070709",
+                    fontSize: 11.5,
+                    lineHeight: 1.65,
+                    color: "#d6d6d8",
+                    border: "1px solid var(--border)"
+                  }
+                })
+              ])
+            ])
+          ])
+        ])
+      ]);
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(h(App));
+  </script>
+</body>
+</html>
