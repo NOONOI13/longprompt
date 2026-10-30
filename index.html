@@ -206,15 +206,26 @@ function scenePrompt(p, shot, i) {
 }
 
 /* Offer a file through the viewer's downloads capability (script-started saves are inert on published pages) */
-async function saveFile(filename, text, notify) {
+async function saveFile(filename, text, notify, manual) {
+  let why = '';
   try {
-    const dl = await window.claude.use('downloads');
-    if (!dl) { notify('ดาวน์โหลดไม่ได้ในมุมมองนี้ — ใช้ปุ่ม Copy แล้ววางลงไฟล์เอง'); return; }
-    await dl.save({filename, data: text});
-    notify('บันทึกไฟล์แล้ว');
+    const dl = window.claude && await window.claude.use('downloads');
+    if (dl) { await dl.save({filename, data: text}); notify('บันทึกไฟล์แล้ว'); return; }
+    why = 'ไม่มีระบบดาวน์โหลดในมุมมองนี้';
   } catch (e) {
-    notify(e && e.code === 'declined' ? 'ยกเลิกการบันทึก' : 'บันทึกไฟล์ไม่สำเร็จ — ใช้ปุ่ม Copy แทน');
+    if (e && e.code === 'declined') { notify('ยกเลิกการบันทึก'); return; }
+    why = 'บันทึกไม่สำเร็จ (' + ((e && (e.code || e.message)) || 'unknown') + ')';
   }
+  /* fallback 1: plain download (works only where the page is not sandboxed) */
+  try {
+    const url = URL.createObjectURL(new Blob([text], {type: 'application/json'}));
+    const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) {}
+  /* fallback 2: show the JSON in a box the person can select, copy and save by hand */
+  notify(why);
+  manual({name: filename, text, why});
+  setTimeout(() => { const el = document.getElementById('manual-box'); if (el) el.scrollIntoView({block: 'center'}); }, 150);
 }
 
 /* Export in the same schema as an 'AI Drama Studio - Workflow Editor' project backup */
@@ -361,6 +372,8 @@ function App() {
   const [ask, setAsk] = useState('');
   const [countDraft, setCountDraft] = useState('');
   const [msg, copy, say] = useCopy();
+  const [manual, setManual] = useState(null);
+  const outRef = useRef(null);
   const fileRef = useRef(null);
 
   useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch (e) {} }, [p]);
@@ -447,7 +460,7 @@ function App() {
   return h('div', {className: 'wrap'},
     h('header', null, h('h1', null, '🎬 Veo 3.1 Video Director'),
       h('div', {className: 'row'},
-        h('button', {onClick: () => saveFile('veo-project.json', JSON.stringify(p, null, 2), say)}, 'Save .json'),
+        h('button', {onClick: () => saveFile('veo-project.json', JSON.stringify(p, null, 2), say, setManual)}, 'Save .json'),
         h('button', {onClick: () => fileRef.current.click()}, 'Load .json'),
         h('button', {onClick: reset}, armed ? 'กดอีกครั้งเพื่อยืนยัน' : 'Reset'),
         h('span', {className: 'tc'}, msg),
@@ -513,10 +526,18 @@ function App() {
         [['prompt', 'PROMPT'], ['json', '{ } VEO 3.1 JSON'], ['workflow', '🧩 WORKFLOW STUDIO'], ['sheets', '🖼️ CHAR SHEETS']].map(([k, l]) =>
           h('button', {key: k, className: mode === k ? 'on' : '', onClick: () => setMode(k)}, l)),
         h('button', {className: 'p', onClick: () => copy(output, 'ทั้งหมด')}, 'Copy'),
-        (mode === 'json' || mode === 'workflow') && h('button', {onClick: () => saveFile((mode === 'workflow' ? (p.name || 'Veo Project') + '_Backup' : 'veo31-shots') + '.json', output, say)}, '⬇ ดาวน์โหลด .json'),
+        h('button', {onClick: () => { outRef.current.focus(); outRef.current.select(); }}, 'เลือกทั้งหมด'),
+        (mode === 'json' || mode === 'workflow') && h('button', {onClick: () => saveFile((mode === 'workflow' ? (p.name || 'Veo Project') + '_Backup' : 'veo31-shots') + '.json', output, say, setManual)}, '⬇ ดาวน์โหลด .json'),
         mode === 'workflow' && h('input', {style: {width: 170}, placeholder: 'project_name', value: p.name || '', onChange: (e) => patch({name: e.target.value})}),
         h('span', {className: 'tc'}, msg)),
-      h('textarea', {className: 'out', readOnly: true, rows: 16, value: output})));
+      manual && h('div', {className: 'shot', style: {padding: 10, marginBottom: 8}},
+        h('div', {className: 'f', style: {marginBottom: 6}}, manual.why + ' — คัดลอกข้อความด้านล่าง แล้ววางในแอปโน้ตหรือตัวแก้ไขข้อความ และบันทึกเป็นไฟล์ชื่อ ' + manual.name),
+        h('textarea', {id: 'manual-box', className: 'out', readOnly: true, rows: 8, value: manual.text}),
+        h('div', {className: 'row', style: {marginTop: 6}},
+          h('button', {onClick: () => { const el = document.getElementById('manual-box'); el.focus(); el.select(); }}, 'เลือกทั้งหมด'),
+          h('button', {onClick: () => copy(manual.text, 'JSON')}, 'Copy'),
+          h('button', {onClick: () => setManual(null)}, 'ปิด'))),
+      h('textarea', {ref: outRef, className: 'out', readOnly: true, rows: 16, value: output})));
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(h(App));
